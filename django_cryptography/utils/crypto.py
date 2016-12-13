@@ -18,30 +18,28 @@ class InvalidToken(Exception):
     pass
 
 
-def salted_hmac(key_salt, value, secret=None):
+def salted_hmac(salt, value, secret=None):
     """
-    Returns the HMAC-HASH of 'value', using a key generated from key_salt and a
-    secret (which defaults to settings.SECRET_KEY).
+    Returns the HMAC-HASH of 'value', using a key generated from salt and a
+    secret (which defaults to settings.CRYPTOGRAPHY_SIGNINGKEY).
 
-    A different key_salt should be passed in for every application of HMAC.
+    A different salt should be passed in for every application of HMAC.
 
-    :type key_salt: any
+    :type salt: any
     :type value: any
     :type secret: any
     :rtype: HMAC
     """
-    if secret is None:
-        secret = settings.SECRET_KEY
 
-    key_salt = force_bytes(key_salt)
-    secret = force_bytes(secret)
+    salt = force_bytes(salt)
+    secret = force_bytes(secret or settings.CRYPTOGRAPHY_SIGNINGKEY)
 
     # We need to generate a derived key from our base key.  We can do this by
-    # passing the key_salt and our base key through a pseudo-random function and
+    # passing the salt and our base key through a pseudo-random function and
     # SHA1 works nicely.
     digest = hashes.Hash(settings.CRYPTOGRAPHY_DIGEST,
                          backend=settings.CRYPTOGRAPHY_BACKEND)
-    digest.update(key_salt + secret)
+    digest.update(salt + secret)
     key = digest.finalize()
 
     # If len(key_salt + secret) > sha_constructor().block_size, the above
@@ -99,11 +97,11 @@ class FernetBytes(object):
     """
 
     def __init__(self, key=None, signer=None):
+        self._backend = settings.CRYPTOGRAPHY_BACKEND
+        self._encryption_key = force_bytes(key or settings.CRYPTOGRAPHY_KEY)
         if signer is None:
             from ..core.signing import FernetSigner
             signer = FernetSigner()
-        self._backend = settings.CRYPTOGRAPHY_BACKEND
-        self._encryption_key = key or settings.CRYPTOGRAPHY_KEY
         self._signer = signer
 
     def encrypt(self, data):

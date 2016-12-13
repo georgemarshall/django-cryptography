@@ -7,10 +7,30 @@ from django.utils.encoding import force_bytes
 
 
 class CryptographyConf(AppConf):
-    BACKEND = default_backend()
-    DIGEST = hashes.SHA256()
-    KEY = None
-    SALT = 'django-cryptography'
+    if not hasattr(settings, 'CRYPTOGRAPHY_BACKEND'):
+        BACKEND = default_backend()
+    else:
+        BACKEND = settings.CRYPTOGRAPHY_BACKEND
+
+    if not hasattr(settings, 'CRYPTOGRAPHY_DIGEST'):
+        DIGEST = hashes.SHA256()
+    else:
+        DIGEST = settings.CRYPTOGRAPHY_DIGEST
+
+    if not hasattr(settings, 'CRYPTOGRAPHY_KEY'):
+        KEY = None
+    else:
+        KEY = settings.CRYPTOGRAPHY_KEY
+
+    if not hasattr(settings, 'CRYPTOGRAPHY_SALT'):
+        SALT = 'django-cryptography'
+    else:
+        SALT = settings.CRYPTOGRAPHY_SALT
+
+    if not hasattr(settings, 'CRYPTOGRAPHY_SIGNINGKEY'):
+        SIGNINGKEY = None
+    else:
+        SIGNINGKEY = settings.CRYPTOGRAPHY_SIGNINGKEY
 
     class Meta:
         prefix = 'cryptography'
@@ -34,4 +54,14 @@ class CryptographyConf(AppConf):
         self.configured_data['KEY'] = kdf.derive(
             force_bytes(self.configured_data['KEY'] or settings.SECRET_KEY)
         )
+        # In order to keep parity with django signing functions, SIGNINGKEY defaults to SECRET_KEY
+        if self.configured_data['SIGNINGKEY'] == None:
+            self.configured_data['SIGNINGKEY'] = force_bytes(settings.SECRET_KEY)
+        else:
+            if self.configured_data['SIGNINGKEY'] == 'SECRET_KEY':
+                self.configured_data['SIGNINGKEY'] = force_bytes(settings.SECRET_KEY)
+            elif self.configured_data['SIGNINGKEY'] == 'CRYPTOGRAPHY_KEY':
+                self.configured_data['SIGNINGKEY'] = self.configured_data['KEY']
+            else:
+                SIGNINGKEY = force_bytes(settings.CRYPTOGRAPHY_SIGNINGKEY)
         return self.configured_data
