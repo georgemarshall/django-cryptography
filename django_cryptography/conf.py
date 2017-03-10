@@ -11,6 +11,7 @@ class CryptographyConf(AppConf):
     DIGEST = hashes.SHA256()
     KEY = None
     SALT = 'django-cryptography'
+    ALLOW_UNENCRYPTED = False
 
     class Meta:
         prefix = 'cryptography'
@@ -35,3 +36,5 @@ class CryptographyConf(AppConf):
             force_bytes(self.configured_data['KEY'] or settings.SECRET_KEY)
         )
         return self.configured_data
+
+
