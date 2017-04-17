@@ -7,10 +7,25 @@ from django.utils.encoding import force_bytes
 
 
 class CryptographyConf(AppConf):
-    BACKEND = default_backend()
-    DIGEST = hashes.SHA256()
-    KEY = None
-    SALT = 'django-cryptography'
+    if not hasattr(settings, 'CRYPTOGRAPHY_BACKEND'):
+        BACKEND = default_backend()
+    else:
+        BACKEND = settings.CRYPTOGRAPHY_BACKEND
+
+    if not hasattr(settings, 'CRYPTOGRAPHY_DIGEST'):
+        DIGEST = hashes.SHA256()
+    else:
+        DIGEST = settings.CRYPTOGRAPHY_DIGEST
+
+    if not hasattr(settings, 'CRYPTOGRAPHY_KEY'):
+        KEY = None
+    else:
+        KEY = settings.CRYPTOGRAPHY_KEY
+
+    if not hasattr(settings, 'CRYPTOGRAPHY_SALT'):
+        SALT = 'django-cryptography'
+    else:
+        SALT = settings.CRYPTOGRAPHY_SALT
 
     class Meta:
         prefix = 'cryptography'

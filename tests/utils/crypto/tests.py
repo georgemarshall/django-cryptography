@@ -3,6 +3,9 @@ import hashlib
 import unittest
 
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf import pbkdf2 as PBKDF2
+from cryptography.hazmat.backends import default_backend
+from django_cryptography.core.signing import FernetSigner
 from django.conf import settings
 from django.test import override_settings
 from django.test.utils import freeze_time
@@ -24,8 +27,8 @@ class TestUtilsCryptoMisc(unittest.TestCase):
     @override_settings(CRYPTOGRAPHY_DIGEST=hashes.SHA1())
     def test_django_hmac_parity(self):
         django_hmac = django_salted_hmac(self.salt, self.value)
-        cryptography_hmac = salted_hmac(self.salt, self.value)
-
+        cryptography_hmac = salted_hmac(self.salt, self.value, settings.SECRET_KEY)
+        
         self.assertEqual(django_hmac.digest(), cryptography_hmac.finalize())
 
     def test_constant_time_compare(self):
@@ -188,11 +191,28 @@ class TestUtilsCryptoPBKDF2(unittest.TestCase):
 
 
 class FernetBytesTestCase(unittest.TestCase):
+    @override_settings(SECRET_KEY=b'test_key')
+    @override_settings(CRYPTOGRAPHY_DIGEST=hashes.SHA256())
+    @override_settings(CRYPTOGRAPHY_SALT=b'django-cryptography')
+    @override_settings(CRYPTOGRAPHY_BACKEND=default_backend())
     def test_cryptography_key(self):
+        kdf = PBKDF2.PBKDF2HMAC(algorithm=settings.CRYPTOGRAPHY_DIGEST, length=settings.CRYPTOGRAPHY_DIGEST.digest_size, 
+            salt=settings.CRYPTOGRAPHY_SALT, iterations=30000, backend=settings.CRYPTOGRAPHY_BACKEND)
+        settings.CRYPTOGRAPHY_KEY=kdf.derive(settings.SECRET_KEY)
         self.assertEqual(
             binascii.hexlify(settings.CRYPTOGRAPHY_KEY).decode('ascii'),
             '3af94f1c73e82b00d41d2db759b54af2e31c55dc97a51c3c3ae8b83eb46dd2b8')
+        result = pbkdf2(settings.SECRET_KEY, settings.CRYPTOGRAPHY_SALT, 30000, settings.CRYPTOGRAPHY_DIGEST.digest_size, 
+            settings.CRYPTOGRAPHY_DIGEST)
+        self.assertEqual(binascii.hexlify(result).decode('ascii'),
+            '3af94f1c73e82b00d41d2db759b54af2e31c55dc97a51c3c3ae8b83eb46dd2b8')
 
+    @override_settings(SECRET_KEY=b'test_key')
+    @override_settings(CRYPTOGRAPHY_DIGEST=hashes.SHA256())
+    @override_settings(CRYPTOGRAPHY_SALT=b'salted_hmac')
+    @override_settings(CRYPTOGRAPHY_BACKEND=default_backend())
+    @override_settings(CRYPTOGRAPHY_KEY=pbkdf2(settings.SECRET_KEY, settings.CRYPTOGRAPHY_SALT, 30000, 
+        settings.CRYPTOGRAPHY_DIGEST.digest_size, settings.CRYPTOGRAPHY_DIGEST))
     def test_encrypt_decrypt(self):
         value = b'hello'
         iv = b'0123456789abcdef'
@@ -200,26 +220,38 @@ class FernetBytesTestCase(unittest.TestCase):
                 'ddaec2d74fb4ff565280abdc39baf116e80f116496cde9515bd7d938e5c74'
                 'd60bc186286e701ba4fb4004')
         with freeze_time(123456789):
-            fernet = FernetBytes()
+            fernet = FernetBytes(settings.CRYPTOGRAPHY_KEY, FernetSigner(settings.SECRET_KEY))
             self.assertEqual(fernet._encrypt_from_parts(value, iv),
                              binascii.unhexlify(data))
             self.assertEqual(fernet.decrypt(binascii.unhexlify(data)), value)
 
+    @override_settings(SECRET_KEY=b'test_key')
+    @override_settings(CRYPTOGRAPHY_DIGEST=hashes.SHA256())
+    @override_settings(CRYPTOGRAPHY_SALT=b'salted_hmac')
+    @override_settings(CRYPTOGRAPHY_BACKEND=default_backend())
+    @override_settings(CRYPTOGRAPHY_KEY=pbkdf2(settings.SECRET_KEY, settings.CRYPTOGRAPHY_SALT, 30000, 
+        settings.CRYPTOGRAPHY_DIGEST.digest_size, settings.CRYPTOGRAPHY_DIGEST))
     def test_decryptor_invalid_token(self):
         data = ('8000000000075bcd153031323334353637383961626364656629b930b1955'
                 'ddaec2d74fb4ff565d549d94cc75de940d1d25507f30763f05c412390d15d'
                 'a26bccee69f1b4543e75')
         with freeze_time(123456789):
-            fernet = FernetBytes()
+            fernet = FernetBytes(settings.CRYPTOGRAPHY_KEY, FernetSigner(settings.SECRET_KEY))
             with self.assertRaises(InvalidToken):
                 fernet.decrypt(binascii.unhexlify(data))
 
+    @override_settings(SECRET_KEY=b'test_key')
+    @override_settings(CRYPTOGRAPHY_DIGEST=hashes.SHA256())
+    @override_settings(CRYPTOGRAPHY_SALT=b'salted_hmac')
+    @override_settings(CRYPTOGRAPHY_BACKEND=default_backend())
+    @override_settings(CRYPTOGRAPHY_KEY=pbkdf2(settings.SECRET_KEY, settings.CRYPTOGRAPHY_SALT, 30000, 
+        settings.CRYPTOGRAPHY_DIGEST.digest_size, settings.CRYPTOGRAPHY_DIGEST))
     def test_unpadder_invalid_token(self):
         data = ('8000000000075bcd15303132333435363738396162636465660ecd40b0f64'
                 '8f001b78b5a77b334b40fbbff559444b3325233e71c24e53f6028116b0377'
                 'b910ebe5498396de36dee59b')
         with freeze_time(123456789):
-            fernet = FernetBytes()
+            fernet = FernetBytes(settings.CRYPTOGRAPHY_KEY, FernetSigner(settings.SECRET_KEY))
             with self.assertRaises(InvalidToken):
                 fernet.decrypt(binascii.unhexlify(data))
 
