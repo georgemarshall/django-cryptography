@@ -7,7 +7,7 @@ from django.utils import six
 from django.utils.encoding import force_bytes
 from django.utils.translation import ugettext_lazy as _
 
-from django_cryptography.core.signing import SignatureExpired
+from django_cryptography.core.signing import SignatureExpired, BadSignature
 from django_cryptography.utils.crypto import FernetBytes
 
 try:
@@ -19,6 +19,10 @@ FIELD_CACHE = {}
 
 Expired = object()
 """Represents an expired encryption value."""
+
+from .conf import CryptographyConf
+
+settings = CryptographyConf()
 
 
 class PickledField(models.Field):
@@ -122,6 +126,10 @@ class EncryptedMixin(object):
             return pickle.loads(
                 self._fernet.decrypt(value, self.ttl)
             )
+        except BadSignature:
+            if settings.ALLOW_UNENCRYPTED:
+                return value
+            raise
         except SignatureExpired:
             return Expired
 
