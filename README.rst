@@ -15,6 +15,9 @@ Do not forget to read the documentation_.
 .. image:: https://img.shields.io/codecov/c/github/georgemarshall/django-cryptography/master.svg
    :target: https://codecov.io/gh/georgemarshall/django-cryptography/branch/master
    :alt: Code coverage
+.. image:: https://badge.fury.io/py/django-cryptography.svg
+   :target: https://badge.fury.io/py/django-cryptography
+   :alt: Code coverage
 .. END HIDDEN
 
 Cryptography by example
