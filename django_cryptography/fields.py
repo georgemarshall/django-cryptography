@@ -70,7 +70,7 @@ class PickledField(models.Field):
             return connection.Database.Binary(self._dump(value))
         return value
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, *args, **kwargs):
         if value is not None:
             return self._load(force_bytes(value))
         return value
@@ -175,7 +175,7 @@ class EncryptedMixin(object):
 
     get_db_prep_save = models.Field.get_db_prep_save
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, *args, **kwargs):
         if value is not None:
             return self._load(force_bytes(value))
         return value
