@@ -54,6 +54,21 @@ class TestSigner(SimpleTestCase):
             self.assertNotEqual(force_str(example), signed)
             self.assertEqual(example, signer.unsign(signed))
 
+    def test_sign_unsign_non_string(self):
+        signer = signing.Signer('predictable-secret')
+        values = [
+            123,
+            1.23,
+            True,
+            datetime.date.today(),
+        ]
+        for value in values:
+            with self.subTest(value):
+                signed = signer.sign(value)
+                self.assertIsInstance(signed, str)
+                self.assertNotEqual(signed, value)
+                self.assertEqual(signer.unsign(signed), str(value))
+
     def test_unsign_detects_tampering(self):
         """unsign should raise an exception if the value has been tampered with"""
         signer = signing.Signer('predictable-secret')
@@ -207,6 +222,22 @@ class TestBytesSigner(SimpleTestCase):
         for transform in transforms:
             with self.assertRaises(signing.BadSignature):
                 signer.unsign(transform(signed_value))
+
+    def test_sign_unsign_object(self):
+        signer = signing.Signer('predictable-secret')
+        tests = [
+            ['a', 'list'],
+            'a string \u2019',
+            {'a': 'dictionary'},
+        ]
+        for obj in tests:
+            with self.subTest(obj=obj):
+                signed_obj = signer.sign_object(obj)
+                self.assertNotEqual(obj, signed_obj)
+                self.assertEqual(obj, signer.unsign_object(signed_obj))
+                signed_obj = signer.sign_object(obj, compress=True)
+                self.assertNotEqual(obj, signed_obj)
+                self.assertEqual(obj, signer.unsign_object(signed_obj))
 
     def test_dumps_loads(self):
         """dumps and loads be reversible for any JSON serializable object"""

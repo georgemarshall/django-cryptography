@@ -4,6 +4,7 @@ import uuid
 from io import StringIO
 
 from django import forms
+from django.apps import apps
 from django.conf import settings
 from django.core import exceptions, serializers, validators
 from django.core.management import call_command
@@ -131,9 +132,6 @@ class TestChecks(TestCase):
         class BadField(models.Model):
             field = encrypt(models.CharField())
 
-            class Meta:
-                app_label = 'myapp'
-
         model = BadField()
         errors = model.check()
         self.assertEqual(len(errors), 1)
@@ -147,13 +145,21 @@ class TestChecks(TestCase):
                 models.ForeignKey('fields.EncryptedIntegerModel',
                                   models.CASCADE))
 
-            class Meta:
-                app_label = 'myapp'
-
         obj = Related()
         errors = obj.check()
         self.assertEqual(1, len(errors))
         self.assertEqual('encrypted.E002', errors[0].id)
+
+    def tearDown(self):
+        """
+        Clean up invalid models from appconfig state to avoid side effects.
+        """
+        models = apps.app_configs['fields'].models
+        for model_name in ('badfield', 'related'):
+            try:
+                del models[model_name]
+            except KeyError:
+                pass
 
 
 class TestMigrations(TransactionTestCase):

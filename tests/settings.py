@@ -1,4 +1,5 @@
 SECRET_KEY = 'test_key'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 DATABASES = {
     'default': {

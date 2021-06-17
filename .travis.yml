@@ -5,23 +5,26 @@ cache: pip
 matrix:
   allow_failures:
     - python: nightly
-    - env: DJANGO="https://github.com/django/django/archive/master.tar.gz"
+    - env: DJANGO="https://github.com/django/django/archive/main.tar.gz"
   exclude:
     - python: "3.5"
       env: DJANGO="Django>=3.0,<3.1"
     - python: "3.5"
-      env: DJANGO="https://github.com/django/django/archive/master.tar.gz"
+      env: DJANGO="https://github.com/django/django/archive/main.tar.gz"
 python:
   - "3.5"
   - "3.6"
   - "3.7"
   - "3.8"
+  - "3.9"
   - "nightly"
 env:
   - DJANGO="Django>=1.11,<1.12"
   - DJANGO="Django>=2.2,<2.3"
   - DJANGO="Django>=3.0,<3.1"
-  - DJANGO="https://github.com/django/django/archive/master.tar.gz"
+  - DJANGO="Django>=3.1,<3.2"
+  - DJANGO="Django>=3.2,<3.3"
+  - DJANGO="https://github.com/django/django/archive/main.tar.gz"
 before_install:
   - pip install --quiet codecov
 install:
