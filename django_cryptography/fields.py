@@ -4,7 +4,12 @@ from base64 import b64decode, b64encode
 from django.core import checks
 from django.db import models
 from django.utils.encoding import force_bytes
-from django.utils.translation import ugettext_lazy as _
+import django
+
+if float(django.__version__[0:3]) >= 4.0:
+    from django.utils.translation import gettext_lazy as _
+else:
+    from django.utils.translation import ugettext_lazy as _
 
 from django_cryptography.core.signing import SignatureExpired
 from django_cryptography.utils.crypto import FernetBytes
