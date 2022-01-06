@@ -15,7 +15,7 @@ from django.core.signing import (BadSignature, JSONSerializer,
                                  SignatureExpired, b64_decode, b64_encode,
                                  get_cookie_signer)
 from django.utils import baseconv
-from django.utils.encoding import force_bytes, force_str, force_text
+from django.utils.encoding import force_bytes, force_str
 
 from ..utils.crypto import constant_time_compare, salted_hmac
 
@@ -123,7 +123,7 @@ class Signer:
             raise BadSignature('No "%s" found in value' % self.sep)
         value, sig = signed_value.rsplit(self.sep, 1)
         if constant_time_compare(sig, self.signature(value)):
-            return force_text(value)
+            return force_str(value)
         raise BadSignature('Signature "%s" does not match' % sig)
 
 
