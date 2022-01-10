@@ -13,15 +13,18 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='IntegerEncryptedDefaultModel',
+            name="IntegerEncryptedDefaultModel",
             fields=[
-                ('id', models.AutoField(
-                    verbose_name='ID',
-                    serialize=False,
-                    auto_created=True,
-                    primary_key=True)),
-                ('field', django_cryptography.fields.encrypt(
-                    models.IntegerField())),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("field", django_cryptography.fields.encrypt(models.IntegerField())),
             ],
         ),
     ]

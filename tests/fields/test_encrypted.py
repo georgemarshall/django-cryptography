@@ -32,7 +32,7 @@ class TestSaveLoad(TestCase):
         self.assertEqual(instance.field, loaded.field)
 
     def test_char(self):
-        instance = EncryptedCharModel(field='Hello, world!')
+        instance = EncryptedCharModel(field="Hello, world!")
         instance.save()
         loaded = EncryptedCharModel.objects.get()
         self.assertEqual(instance.field, loaded.field)
@@ -79,7 +79,7 @@ class TestSaveLoad(TestCase):
 
     def test_other_types(self):
         instance = OtherEncryptedTypesModel(
-            ip='192.168.0.1',
+            ip="192.168.0.1",
             uuid=uuid.uuid4(),
             decimal=decimal.Decimal(1.25),
         )
@@ -91,8 +91,8 @@ class TestSaveLoad(TestCase):
 
     def test_updates(self):
         with self.assertNumQueries(2):
-            instance = EncryptedCharModel.objects.create(field='Hello, world!')
-            instance.field = 'Goodbye, world!'
+            instance = EncryptedCharModel.objects.create(field="Hello, world!")
+            instance.field = "Goodbye, world!"
             instance.save()
         loaded = EncryptedCharModel.objects.get()
         self.assertEqual(instance.field, loaded.field)
@@ -110,7 +110,8 @@ class TestQuerying(TestCase):
     def test_isnull(self):
         self.assertSequenceEqual(
             self.objs[-1:],
-            EncryptedNullableIntegerModel.objects.filter(field__isnull=True))
+            EncryptedNullableIntegerModel.objects.filter(field__isnull=True),
+        )
 
     def test_unsupported(self):
         with self.assertRaises(exceptions.FieldError):
@@ -125,39 +126,39 @@ class TestChecks(TestCase):
 
     def test_field_description(self):
         field = encrypt(models.IntegerField())
-        self.assertEqual('Encrypted Integer', field.description)
+        self.assertEqual("Encrypted Integer", field.description)
 
     def test_field_checks(self):
         class BadField(models.Model):
             field = encrypt(models.CharField())
 
             class Meta:
-                app_label = 'myapp'
+                app_label = "myapp"
 
         model = BadField()
         errors = model.check()
         self.assertEqual(len(errors), 1)
         # The inner CharField is missing a max_length.
-        self.assertEqual('fields.E120', errors[0].id)
-        self.assertIn('max_length', errors[0].msg)
+        self.assertEqual("fields.E120", errors[0].id)
+        self.assertIn("max_length", errors[0].msg)
 
     def test_invalid_base_fields(self):
         class Related(models.Model):
             field = encrypt(
-                models.ForeignKey('fields.EncryptedIntegerModel',
-                                  models.CASCADE))
+                models.ForeignKey("fields.EncryptedIntegerModel", models.CASCADE)
+            )
 
             class Meta:
-                app_label = 'myapp'
+                app_label = "myapp"
 
         obj = Related()
         errors = obj.check()
         self.assertEqual(1, len(errors))
-        self.assertEqual('encrypted.E002', errors[0].id)
+        self.assertEqual("encrypted.E002", errors[0].id)
 
 
 class TestMigrations(TransactionTestCase):
-    available_apps = ['tests.fields']
+    available_apps = ["tests.fields"]
 
     def test_clone(self):
         field = encrypt(models.IntegerField())
@@ -194,67 +195,58 @@ class TestMigrations(TransactionTestCase):
     def test_subclass_deconstruct(self):
         field = encrypt(models.IntegerField())
         name, path, args, kwargs = field.deconstruct()
-        self.assertEqual('django_cryptography.fields.encrypt', path)
+        self.assertEqual("django_cryptography.fields.encrypt", path)
 
         field = EncryptedFieldSubclass()
         name, path, args, kwargs = field.deconstruct()
-        self.assertEqual('tests.fields.models.EncryptedFieldSubclass', path)
+        self.assertEqual("tests.fields.models.EncryptedFieldSubclass", path)
 
-    @override_settings(MIGRATION_MODULES={
-        'fields':
-        'tests.fields.test_migrations_encrypted_default'
-    })
+    @override_settings(
+        MIGRATION_MODULES={"fields": "tests.fields.test_migrations_encrypted_default"}
+    )
     def test_adding_field_with_default(self):
-        table_name = 'fields_integerencrypteddefaultmodel'
+        table_name = "fields_integerencrypteddefaultmodel"
         with connection.cursor() as cursor:
-            self.assertNotIn(table_name,
-                             connection.introspection.table_names(cursor))
-        call_command('migrate', 'fields', verbosity=0)
+            self.assertNotIn(table_name, connection.introspection.table_names(cursor))
+        call_command("migrate", "fields", verbosity=0)
         with connection.cursor() as cursor:
-            self.assertIn(table_name,
-                          connection.introspection.table_names(cursor))
-        call_command('migrate', 'fields', 'zero', verbosity=0)
+            self.assertIn(table_name, connection.introspection.table_names(cursor))
+        call_command("migrate", "fields", "zero", verbosity=0)
         with connection.cursor() as cursor:
-            self.assertNotIn(table_name,
-                             connection.introspection.table_names(cursor))
+            self.assertNotIn(table_name, connection.introspection.table_names(cursor))
 
-    @override_settings(MIGRATION_MODULES={
-        'fields':
-        'tests.fields.test_migrations_normal_to_encrypted'
-    })
+    @override_settings(
+        MIGRATION_MODULES={"fields": "tests.fields.test_migrations_normal_to_encrypted"}
+    )
     def test_makemigrations_no_changes(self):
         out = StringIO()
-        call_command('makemigrations', '--dry-run', 'fields', stdout=out)
+        call_command("makemigrations", "--dry-run", "fields", stdout=out)
         self.assertIn("No changes detected in app 'fields'", out.getvalue())
 
 
 class TestSerialization(TestCase):
-    test_data_integer = (
-        '[{"fields": {"field": 42}, "model": "fields.encryptedintegermodel", "pk": null}]'
-    )
-    test_data_char = (
-        '[{"fields": {"field": "Hello, world!"}, "model": "fields.encryptedcharmodel", "pk": null}]'
-    )
+    test_data_integer = '[{"fields": {"field": 42}, "model": "fields.encryptedintegermodel", "pk": null}]'
+    test_data_char = '[{"fields": {"field": "Hello, world!"}, "model": "fields.encryptedcharmodel", "pk": null}]'
 
     def test_integer_dumping(self):
         instance = EncryptedIntegerModel(field=42)
-        data = serializers.serialize('json', [instance])
+        data = serializers.serialize("json", [instance])
         self.assertEqual(json.loads(self.test_data_integer), json.loads(data))
 
     def test_integer_loading(self):
-        instance = list(
-            serializers.deserialize('json', self.test_data_integer))[0].object
+        instance = list(serializers.deserialize("json", self.test_data_integer))[
+            0
+        ].object
         self.assertEqual(42, instance.field)
 
     def test_char_dumping(self):
-        instance = EncryptedCharModel(field='Hello, world!')
-        data = serializers.serialize('json', [instance])
+        instance = EncryptedCharModel(field="Hello, world!")
+        data = serializers.serialize("json", [instance])
         self.assertEqual(json.loads(self.test_data_char), json.loads(data))
 
     def test_char_loading(self):
-        instance = list(serializers.deserialize('json',
-                                                self.test_data_char))[0].object
-        self.assertEqual('Hello, world!', instance.field)
+        instance = list(serializers.deserialize("json", self.test_data_char))[0].object
+        self.assertEqual("Hello, world!", instance.field)
 
 
 class TestValidation(TestCase):
@@ -262,9 +254,8 @@ class TestValidation(TestCase):
         field = encrypt(models.IntegerField())
         with self.assertRaises(exceptions.ValidationError) as cm:
             field.clean(None, None)
-        self.assertEqual('null', cm.exception.code)
-        self.assertEqual('This field cannot be null.',
-                         cm.exception.messages[0])
+        self.assertEqual("null", cm.exception.code)
+        self.assertEqual("This field cannot be null.", cm.exception.messages[0])
 
     def test_blank_true(self):
         field = encrypt(models.IntegerField(blank=True, null=True))
@@ -273,18 +264,20 @@ class TestValidation(TestCase):
 
     def test_with_validators(self):
         field = encrypt(
-            models.IntegerField(validators=[validators.MinValueValidator(1)]))
+            models.IntegerField(validators=[validators.MinValueValidator(1)])
+        )
         field.clean(1, None)
         with self.assertRaises(exceptions.ValidationError) as cm:
             field.clean(0, None)
-        self.assertEqual('Ensure this value is greater than or equal to 1.',
-                         cm.exception.messages[0])
+        self.assertEqual(
+            "Ensure this value is greater than or equal to 1.", cm.exception.messages[0]
+        )
 
 
 class TestFormField(TestCase):
     class EncryptedCharModelForm(forms.ModelForm):
         class Meta:
-            fields = '__all__'
+            fields = "__all__"
             model = EncryptedCharModel
 
     def test_model_field_formfield(self):
@@ -294,21 +287,21 @@ class TestFormField(TestCase):
         self.assertEqual(form_field.max_length, 27)
 
     def test_model_form(self):
-        data = {'field': 'Hello, world!'}
+        data = {"field": "Hello, world!"}
         form = self.EncryptedCharModelForm(data)
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual({'field': 'Hello, world!'}, form.cleaned_data)
+        self.assertEqual({"field": "Hello, world!"}, form.cleaned_data)
 
         instance = form.save()
         loaded = EncryptedCharModel.objects.get()
         self.assertEqual(instance.field, loaded.field)
 
     def test_model_form_update(self):
-        data = {'field': 'Goodbye, world!'}
-        instance = EncryptedCharModel.objects.create(field='Hello, world!')
+        data = {"field": "Goodbye, world!"}
+        instance = EncryptedCharModel.objects.create(field="Hello, world!")
         form = self.EncryptedCharModelForm(data, instance=instance)
         self.assertTrue(form.is_valid(), form.errors)
         form.save()
 
         loaded = EncryptedCharModel.objects.get()
-        self.assertEqual(data['field'], loaded.field)
+        self.assertEqual(data["field"], loaded.field)

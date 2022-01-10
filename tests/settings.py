@@ -1,13 +1,13 @@
-SECRET_KEY = 'test_key'
+SECRET_KEY = "test_key"
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
     }
 }
 
 INSTALLED_APPS = [
-    'tests.fields',
+    "tests.fields",
 ]
 
-SIGNING_BACKEND = 'django_cryptography.core.signing.TimestampSigner'
+SIGNING_BACKEND = "django_cryptography.core.signing.TimestampSigner"
