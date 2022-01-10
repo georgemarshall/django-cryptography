@@ -14,17 +14,17 @@ else:
     from io import StringIO
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
-EXCLUDE_FROM_PACKAGES = ['docs', 'tests']
+EXCLUDE_FROM_PACKAGES = ["docs", "tests"]
 
 long_description = StringIO()
-version = import_module('django_cryptography').get_version()
+version = import_module("django_cryptography").get_version()
 
-with open(os.path.join(BASEDIR, 'README.rst'), encoding='utf-8') as fp:
+with open(os.path.join(BASEDIR, "README.rst"), encoding="utf-8") as fp:
     in_block = False
     for line in fp.readlines():
-        if not in_block and line.startswith('.. START HIDDEN'):
+        if not in_block and line.startswith(".. START HIDDEN"):
             in_block = True
-        elif in_block and line.startswith('.. END HIDDEN'):
+        elif in_block and line.startswith(".. END HIDDEN"):
             in_block = False
         elif not in_block:
             long_description.write(line)
@@ -43,29 +43,45 @@ class NonDataProperty:
 
 class DjangoTest(TestCommand):
     user_options = [
-        ('settings=', None, "The Python path to a settings module, e.g. "
-         "\"myproject.settings.main\". If this isn't provided, the "
-         "DJANGO_SETTINGS_MODULE environment variable will be used."),
-        ('noinput', None,
-         "Tells Django to NOT prompt the user for input of any kind."),
-        ('failfast', None, "Tells Django to stop running the test suite after "
-         "first failed test."),
-        ('testrunner=', None,
-         "Tells Django to use specified test runner class "
-         "instead of the one specified by the TEST_RUNNER setting."),
-        ('liveserver=', None, "Overrides the default address where the live "
-         "server (used with LiveServerTestCase) is expected to run from. The "
-         "default value is localhost:8081."),
-        ('top-level-directory=', 't', "Top level of project for unittest "
-         "discovery."),
-        ('pattern=', 'p', "The test matching pattern. Defaults to test*.py."),
-        ('keepdb', 'k', "Preserves the test DB between runs."),
-        ('reverse', 'r', "Reverses test cases order."),
-        ('debug-sql', 'd', "Prints logged SQL queries on failure."),
+        (
+            "settings=",
+            None,
+            "The Python path to a settings module, e.g. "
+            '"myproject.settings.main". If this isn\'t provided, the '
+            "DJANGO_SETTINGS_MODULE environment variable will be used.",
+        ),
+        ("noinput", None, "Tells Django to NOT prompt the user for input of any kind."),
+        (
+            "failfast",
+            None,
+            "Tells Django to stop running the test suite after " "first failed test.",
+        ),
+        (
+            "testrunner=",
+            None,
+            "Tells Django to use specified test runner class "
+            "instead of the one specified by the TEST_RUNNER setting.",
+        ),
+        (
+            "liveserver=",
+            None,
+            "Overrides the default address where the live "
+            "server (used with LiveServerTestCase) is expected to run from. The "
+            "default value is localhost:8081.",
+        ),
+        (
+            "top-level-directory=",
+            "t",
+            "Top level of project for unittest " "discovery.",
+        ),
+        ("pattern=", "p", "The test matching pattern. Defaults to test*.py."),
+        ("keepdb", "k", "Preserves the test DB between runs."),
+        ("reverse", "r", "Reverses test cases order."),
+        ("debug-sql", "d", "Prints logged SQL queries on failure."),
     ]
 
     def initialize_options(self):
-        self.test_suite = 'DjangoTest'
+        self.test_suite = "DjangoTest"
         self.settings = None
 
         self.test_labels = None
@@ -85,23 +101,23 @@ class DjangoTest(TestCommand):
     def finalize_options(self):
         self.verbosity = self.verbose
         if self.settings:
-            os.environ['DJANGO_SETTINGS_MODULE'] = self.settings
+            os.environ["DJANGO_SETTINGS_MODULE"] = self.settings
 
         if self.test_labels is not None:
-            self.test_labels = self.test_labels.split(',')
+            self.test_labels = self.test_labels.split(",")
         self.noinput = bool(self.noinput)
         self.failfast = bool(self.failfast)
         if self.liveserver is not None:
-            os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = self.liveserver
+            os.environ["DJANGO_LIVE_TEST_SERVER_ADDRESS"] = self.liveserver
 
         if self.pattern is None:
-            self.pattern = 'test*.py'
+            self.pattern = "test*.py"
         self.keepdb = bool(self.keepdb)
         self.reverse = bool(self.reverse)
         self.debug_sql = bool(self.debug_sql)
 
         if self.output_dir is None:
-            self.output_dir = 'testxml'
+            self.output_dir = "testxml"
 
     @NonDataProperty
     def test_args(self):
@@ -109,7 +125,7 @@ class DjangoTest(TestCommand):
 
     def _test_args(self):
         if self.verbose:
-            yield '--verbose'
+            yield "--verbose"
         if self.test_suite:
             yield self.test_suite
 
@@ -120,7 +136,7 @@ class DjangoTest(TestCommand):
             # logging.capturewarnings is true
             # a "default" level warnings filter has been added for
             # DeprecationWarning. See django.conf.LazySettings._configure_logging
-            logger = logging.getLogger('py.warnings')
+            logger = logging.getLogger("py.warnings")
             handler = logging.StreamHandler()
             logger.addHandler(handler)
         TestCommand.run(self)
@@ -130,6 +146,7 @@ class DjangoTest(TestCommand):
 
     def run_tests(self):
         import django
+
         django.setup()
 
         from django.conf import settings
@@ -146,49 +163,51 @@ class DjangoTest(TestCommand):
             keepdb=self.keepdb,
             reverse=self.reverse,
             debug_sql=self.debug_sql,
-            output_dir=self.output_dir)
+            output_dir=self.output_dir,
+        )
         failures = test_runner.run_tests(self.test_labels)
 
         sys.exit(bool(failures))
 
 
 setup(
-    name='django-cryptography',
+    name="django-cryptography",
     version=version,
-    description='Easily encrypt data in Django',
+    description="Easily encrypt data in Django",
     long_description=long_description.getvalue(),
-    url='https://github.com/georgemarshall/django-cryptography',
-    author='George Marshall',
-    author_email='george@georgemarshall.name',
-    license='BSD',
+    url="https://github.com/georgemarshall/django-cryptography",
+    author="George Marshall",
+    author_email="george@georgemarshall.name",
+    license="BSD",
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Environment :: Web Environment',
-        'Framework :: Django',
-        'Framework :: Django :: 1.11',
-        'Framework :: Django :: 2.2',
-        'Framework :: Django :: 3.0',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3 :: Only',
-        'Topic :: Internet :: WWW/HTTP',
-        'Topic :: Security :: Cryptography',
+        "Development Status :: 2 - Pre-Alpha",
+        "Environment :: Web Environment",
+        "Framework :: Django",
+        "Framework :: Django :: 1.11",
+        "Framework :: Django :: 2.2",
+        "Framework :: Django :: 3.0",
+        "Framework :: Django :: 4.0",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3 :: Only",
+        "Topic :: Internet :: WWW/HTTP",
+        "Topic :: Security :: Cryptography",
     ],
     packages=find_packages(exclude=EXCLUDE_FROM_PACKAGES),
     install_requires=[
-        'django-appconf',
-        'cryptography',
+        "django-appconf",
+        "cryptography",
     ],
-    tests_require=['Django'],
+    tests_require=["Django"],
     cmdclass={
-        'test': DjangoTest,
+        "test": DjangoTest,
     },
     zip_safe=False,
 )

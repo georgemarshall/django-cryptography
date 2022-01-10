@@ -4,10 +4,16 @@ from base64 import b64decode, b64encode
 from django.core import checks
 from django.db import models
 from django.utils.encoding import force_bytes
-from django.utils.translation import ugettext_lazy as _
 
 from django_cryptography.core.signing import SignatureExpired
 from django_cryptography.utils.crypto import FernetBytes
+
+import django
+
+if float(django.__version__[0:3]) >= 4.0:
+    from django.utils.translation import gettext_lazy as _
+else:
+    from django.utils.translation import ugettext_lazy as _
 
 FIELD_CACHE = {}
 
@@ -19,12 +25,13 @@ class PickledField(models.Field):
     """
     A field for storing pickled objects
     """
+
     description = _("Pickled data")
-    empty_values = [None, b'']
-    supported_lookups = ('exact', 'in', 'isnull')
+    empty_values = [None, b""]
+    supported_lookups = ("exact", "in", "isnull")
 
     def __init__(self, *args, **kwargs):
-        kwargs['editable'] = False
+        kwargs["editable"] = False
         super(PickledField, self).__init__(*args, **kwargs)
 
     def _dump(self, value):
@@ -35,7 +42,7 @@ class PickledField(models.Field):
 
     def deconstruct(self):
         name, path, args, kwargs = super(PickledField, self).deconstruct()
-        del kwargs['editable']
+        del kwargs["editable"]
         return name, path, args, kwargs
 
     def get_internal_type(self):
@@ -43,8 +50,8 @@ class PickledField(models.Field):
 
     def get_default(self):
         default = super(PickledField, self).get_default()
-        if default == '':
-            return b''
+        if default == "":
+            return b""
         return default
 
     def get_lookup(self, lookup_name):
@@ -58,8 +65,7 @@ class PickledField(models.Field):
         return super(PickledField, self).get_transform(lookup_name)
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        value = super(PickledField, self).get_db_prep_value(
-            value, connection, prepared)
+        value = super(PickledField, self).get_db_prep_value(value, connection, prepared)
         if value is not None:
             return connection.Database.Binary(self._dump(value))
         return value
@@ -72,7 +78,7 @@ class PickledField(models.Field):
     def value_to_string(self, obj):
         """Pickled data is serialized as base64"""
         value = self.value_from_object(obj)
-        return b64encode(self._dump(value)).decode('ascii')
+        return b64encode(self._dump(value)).decode("ascii")
 
     def to_python(self, value):
         # If it's a string, it should be base64-encoded data
@@ -94,18 +100,19 @@ class EncryptedMixin:
         time to live of the data has passed, it will become unreadable.
         The expired value will return an :class:`Expired` object.
     """
-    supported_lookups = ('isnull', )
+
+    supported_lookups = ("isnull",)
 
     def __init__(self, *args, **kwargs):
-        self.key = kwargs.pop('key', None)
-        self.ttl = kwargs.pop('ttl', None)
+        self.key = kwargs.pop("key", None)
+        self.ttl = kwargs.pop("ttl", None)
 
         self._fernet = FernetBytes(self.key)
         super(EncryptedMixin, self).__init__(*args, **kwargs)
 
     @property
     def description(self):
-        return _('Encrypted %s') % super(EncryptedMixin, self).description
+        return _("Encrypted %s") % super(EncryptedMixin, self).description
 
     def _dump(self, value):
         return self._fernet.encrypt(pickle.dumps(value))
@@ -118,21 +125,22 @@ class EncryptedMixin:
 
     def check(self, **kwargs):
         errors = super(EncryptedMixin, self).check(**kwargs)
-        if getattr(self, 'remote_field', None):
+        if getattr(self, "remote_field", None):
             errors.append(
                 checks.Error(
-                    'Base field for encrypted cannot be a related field.',
+                    "Base field for encrypted cannot be a related field.",
                     hint=None,
                     obj=self,
-                    id='encrypted.E002'))
+                    id="encrypted.E002",
+                )
+            )
         return errors
 
     def clone(self):
         name, path, args, kwargs = super(EncryptedMixin, self).deconstruct()
         # Determine if the class that subclassed us has been subclassed.
         if not self.__class__.__mro__.index(EncryptedMixin) > 1:
-            return encrypt(
-                self.base_class(*args, **kwargs), self.key, self.ttl)
+            return encrypt(self.base_class(*args, **kwargs), self.key, self.ttl)
         return self.__class__(*args, **kwargs)
 
     def deconstruct(self):
@@ -143,7 +151,7 @@ class EncryptedMixin:
             args = [self.base_class(*args, **kwargs)]
             kwargs = {}
             if self.ttl is not None:
-                kwargs['ttl'] = self.ttl
+                kwargs["ttl"] = self.ttl
         return name, path, args, kwargs
 
     def get_lookup(self, lookup_name):
@@ -160,8 +168,7 @@ class EncryptedMixin:
         return "BinaryField"
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        value = models.Field.get_db_prep_value(self, value, connection,
-                                               prepared)
+        value = models.Field.get_db_prep_value(self, value, connection, prepared)
         if value is not None:
             return connection.Database.Binary(self._dump(value))
         return value
@@ -184,12 +191,15 @@ def get_encrypted_field(base_class):
     :rtype: models.Field[EncryptedMixin, T]
     """
     assert not isinstance(base_class, models.Field)
-    field_name = 'Encrypted' + base_class.__name__
+    field_name = "Encrypted" + base_class.__name__
     if base_class not in FIELD_CACHE:
-        FIELD_CACHE[base_class] = type(field_name,
-                                       (EncryptedMixin, base_class), {
-                                           'base_class': base_class,
-                                       })
+        FIELD_CACHE[base_class] = type(
+            field_name,
+            (EncryptedMixin, base_class),
+            {
+                "base_class": base_class,
+            },
+        )
     return FIELD_CACHE[base_class]
 
 
@@ -214,5 +224,5 @@ def encrypt(base_field, key=None, ttl=None):
         return get_encrypted_field(base_field)
 
     name, path, args, kwargs = base_field.deconstruct()
-    kwargs.update({'key': key, 'ttl': ttl})
+    kwargs.update({"key": key, "ttl": ttl})
     return get_encrypted_field(type(base_field))(*args, **kwargs)
