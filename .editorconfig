@@ -24,7 +24,7 @@ insert_final_newline = false
 indent_size = 2
 
 # Use 2 spaces for the YAML files
-[*.yml]
+[*.{yml,yaml}]
 indent_size = 2
 
 # Makefiles always use tabs for indentation
