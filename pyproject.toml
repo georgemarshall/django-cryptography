@@ -6,5 +6,41 @@ build-backend = "setuptools.build_meta"
 target-version = ['py37']
 skip-string-normalization = true
 
+[tool.coverage.run]
+branch = true
+source = 'django_cryptography'
+
+[tool.coverage.report]
+exclude_lines = [
+    'if self.debug:',
+    'pragma: no cover',
+    'raise NotImplementedError',
+    'if __name__ == .__main__.:',
+]
+ignore_errors = true
+omit = ['docs/*', 'tests/*']
+
 [tool.isort]
 profile = 'black'
+
+[tool.tox]
+# language=ini
+legacy_tox_ini = """
+[tox]
+envlist =
+    {py37,py38,py39}-django22,
+    {py37,py38,py39}-django32,
+    {py38,py39,py310}-django40,
+    {py38,py39,py310}-djangomain,
+isolated_build = True
+
+[testenv]
+deps =
+    coverage[toml]
+    django22: Django>=2.2,<2.3
+    django32: Django>=3.2,<3.3
+    django40: Django>=4.0,<4.1
+    djangomain: https://github.com/django/django/archive/main.tar.gz
+commands =
+    {envpython} -m coverage run --context='{envname}' runtests.py {posargs}
+"""
