@@ -1,10 +1,10 @@
 import binascii
 import hashlib
+import time
 import unittest
 
 from cryptography.hazmat.primitives import hashes
 from django.conf import settings
-from django.test import override_settings
 from django.test.utils import freeze_time
 from django.utils.crypto import pbkdf2 as django_pbkdf2
 from django.utils.crypto import salted_hmac as django_salted_hmac
@@ -24,10 +24,9 @@ class TestUtilsCryptoMisc(unittest.TestCase):
     salt = 'salted_hmac'
     value = 'Hello, World!'
 
-    @override_settings(CRYPTOGRAPHY_DIGEST=hashes.SHA1())
     def test_django_hmac_parity(self):
         django_hmac = django_salted_hmac(self.salt, self.value)
-        cryptography_hmac = salted_hmac(self.salt, self.value)
+        cryptography_hmac = salted_hmac(self.salt, self.value, algorithm='sha1')
 
         self.assertEqual(django_hmac.digest(), cryptography_hmac.finalize())
 
@@ -168,9 +167,8 @@ class TestUtilsCryptoPBKDF2(unittest.TestCase):
         kwargs["digest"] = self.digest_map[kwargs["digest"].__class__]
         return kwargs
 
-    @override_settings(CRYPTOGRAPHY_DIGEST=hashes.SHA1())
     def test_defaults(self):
-        result = pbkdf2('password', 'salt', 1)
+        result = pbkdf2('password', 'salt', 1, digest=hashes.SHA1())
         self.assertEqual(
             '0c60c80f961f0e71f3a9b524af6012062fe037a6',
             binascii.hexlify(result).decode('ascii'),
@@ -212,7 +210,8 @@ class FernetBytesTestCase(unittest.TestCase):
         with freeze_time(123456789):
             fernet = FernetBytes()
             self.assertEqual(
-                fernet._encrypt_from_parts(value, iv), binascii.unhexlify(data)
+                fernet._encrypt_from_parts(value, int(time.time()), iv),
+                binascii.unhexlify(data),
             )
             self.assertEqual(fernet.decrypt(binascii.unhexlify(data)), value)
 
@@ -250,7 +249,9 @@ class StandardFernetTestCase(unittest.TestCase):
         )
         with freeze_time(499162800):
             fernet = Fernet(key)
-            self.assertEqual(data, fernet._encrypt_from_parts(value, iv))
+            self.assertEqual(
+                data, fernet._encrypt_from_parts(value, int(time.time()), iv)
+            )
             self.assertEqual(value, fernet.decrypt(data, 60))
 
         with freeze_time(123456789):

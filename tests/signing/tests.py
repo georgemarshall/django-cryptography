@@ -1,8 +1,8 @@
 import datetime
+import time
 
 from django.test import SimpleTestCase
 from django.test.utils import freeze_time
-from django.utils.encoding import force_str
 
 from django_cryptography.core import signing
 
@@ -20,8 +20,8 @@ class TestSigner(SimpleTestCase):
             self.assertEqual(
                 signer.signature(s),
                 signing.base64_hmac(
-                    signer.salt + 'signer', s, 'predictable-secret'
-                ).decode(),
+                    signer.salt + 'signer', s, 'predictable-secret', algorithm='sha256'
+                ),
             )
             self.assertNotEqual(signer.signature(s), signer2.signature(s))
 
@@ -31,8 +31,11 @@ class TestSigner(SimpleTestCase):
         self.assertEqual(
             signer.signature('hello'),
             signing.base64_hmac(
-                'extra-salt' + 'signer', 'hello', 'predictable-secret'
-            ).decode(),
+                'extra-salt' + 'signer',
+                'hello',
+                'predictable-secret',
+                algorithm='sha256',
+            ),
         )
         self.assertNotEqual(
             signing.Signer('predictable-secret', salt='one').signature('hello'),
@@ -52,7 +55,7 @@ class TestSigner(SimpleTestCase):
         for example in examples:
             signed = signer.sign(example)
             self.assertIsInstance(signed, str)
-            self.assertNotEqual(force_str(example), signed)
+            self.assertNotEqual(example, signed)
             self.assertEqual(example, signer.unsign(signed))
 
     def test_unsign_detects_tampering(self):
@@ -75,9 +78,8 @@ class TestSigner(SimpleTestCase):
         """dumps and loads be reversible for any JSON serializable object"""
         objects = [
             ['a', 'list'],
-            'a unicode string \u2019',
+            'a string \u2019',
             {'a': 'dictionary'},
-            'a compressible string' * 100,
         ]
         for o in objects:
             self.assertNotEqual(o, signing.dumps(o))
@@ -163,7 +165,7 @@ class TestBytesSigner(SimpleTestCase):
             self.assertEqual(
                 signer.signature(s),
                 signing.salted_hmac(
-                    signer.salt + 'signer', s, 'predictable-secret'
+                    signer.salt + 'signer', s, 'predictable-secret', algorithm='sha256'
                 ).finalize(),
             )
             self.assertNotEqual(signer.signature(s), signer2.signature(s))
@@ -174,7 +176,10 @@ class TestBytesSigner(SimpleTestCase):
         self.assertEqual(
             signer.signature('hello'),
             signing.salted_hmac(
-                'extra-salt' + 'signer', 'hello', 'predictable-secret'
+                'extra-salt' + 'signer',
+                'hello',
+                'predictable-secret',
+                algorithm='sha256',
             ).finalize(),
         )
         self.assertNotEqual(
@@ -195,7 +200,7 @@ class TestBytesSigner(SimpleTestCase):
         for example in examples:
             signed = signer.sign(example)
             self.assertIsInstance(signed, bytes)
-            self.assertNotEqual(force_str(example), signed)
+            self.assertNotEqual(example, signed)
             self.assertEqual(example, signer.unsign(signed))
 
     def test_unsign_detects_tampering(self):
@@ -261,25 +266,25 @@ class TestFernetSigner(SimpleTestCase):
         value = b'hello'
         with freeze_time(123456789):
             signer = signing.FernetSigner('predictable-key')
-            ts = signer.sign(value)
+            ts = signer.sign(value, int(time.time()))
             self.assertEqual(signer.unsign(ts), value)
 
         with freeze_time(123456800 + signing._MAX_CLOCK_SKEW):
-            self.assertEqual(signer.unsign(ts, ttl=12), value)
+            self.assertEqual(signer.unsign(ts, max_age=12), value)
             # max_age parameter can also accept a datetime.timedelta object
             self.assertEqual(
-                signer.unsign(ts, ttl=datetime.timedelta(seconds=11)), value
+                signer.unsign(ts, max_age=datetime.timedelta(seconds=11)), value
             )
             with self.assertRaises(signing.SignatureExpired):
-                signer.unsign(ts, ttl=10)
+                signer.unsign(ts, max_age=10)
 
         with freeze_time(123456778 - signing._MAX_CLOCK_SKEW):
             with self.assertRaises(signing.SignatureExpired):
-                signer.unsign(ts, ttl=10)
+                signer.unsign(ts, max_age=10)
 
     def test_bad_payload(self):
         signer = signing.FernetSigner('predictable-key')
-        value = signer.sign('hello')
+        value = signer.sign('hello', int(time.time()))
 
         with self.assertRaises(signing.BadSignature):
             # Break the version

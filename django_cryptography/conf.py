@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from appconf import AppConf
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -16,10 +18,10 @@ class CryptographyConf(AppConf):
         prefix = 'cryptography'
         proxy = True
 
-    def configure_salt(self, value):
+    def configure_salt(self, value: Any) -> bytes:
         return force_bytes(value)
 
-    def configure(self):
+    def configure(self) -> Dict[str, Any]:
         backend = self.configured_data['BACKEND']
         digest = self.configured_data['DIGEST']
         salt = self.configured_data['SALT']
