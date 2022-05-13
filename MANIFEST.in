@@ -1,5 +1,6 @@
 include LICENSE
 include README.rst
-include django_cryptography/py.typed
 graft docs
 graft tests
+global-exclude __pycache__
+global-exclude *.py[cod]
