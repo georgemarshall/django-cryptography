@@ -21,20 +21,10 @@ from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.models.lookups import Lookup, Transform
 from django.utils.encoding import force_bytes
 from django.utils.translation import gettext_lazy as _
-from typing_extensions import Protocol
 
 from django_cryptography.core.signing import SignatureExpired
+from django_cryptography.typing import DatabaseWrapper
 from django_cryptography.utils.crypto import FernetBytes
-
-
-class DBAPI(Protocol):
-    def Binary(self, obj: Union[bytes, str]) -> Any:
-        ...
-
-
-class DatabaseWrapper(Protocol):
-    Database: DBAPI
-
 
 F = TypeVar('F', bound=models.Field)
 FIELD_CACHE: Dict[type, type] = {}

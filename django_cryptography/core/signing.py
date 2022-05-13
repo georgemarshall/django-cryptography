@@ -19,8 +19,8 @@ from django.core.signing import (
 )
 from django.utils import baseconv
 from django.utils.encoding import force_bytes
-from typing_extensions import Protocol
 
+from ..typing import Serializer
 from ..utils.crypto import InvalidAlgorithm, constant_time_compare, salted_hmac
 
 __all__ = [
@@ -43,14 +43,6 @@ _MAX_CLOCK_SKEW = 60
 # RemovedInDjango30Warning: when the deprecation ends, replace with:
 # _SEP_UNSAFE = _lazy_re_compile(r'^[A-z0-9-_=]*$')
 _SEP_UNSAFE = re.compile(r'^[A-z0-9-_=]*$')
-
-
-class Serializer(Protocol):
-    def dumps(self, obj: Any) -> bytes:
-        ...
-
-    def loads(self, data: bytes) -> Any:
-        ...
 
 
 def base64_hmac(

@@ -1,5 +1,4 @@
 import base64
-import datetime
 import os
 import time
 from binascii import Error
@@ -12,31 +11,11 @@ from cryptography.hazmat.primitives.hmac import HMAC
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from django.utils import crypto
 from django.utils.encoding import force_bytes
-from typing_extensions import Protocol
 
 from ..conf import CryptographyConf
+from ..typing import Signer
 
 settings = CryptographyConf()
-
-
-class Signer(Protocol):
-    def __init__(
-        self, key: Optional[Union[bytes, str]] = None, algorithm: Optional[str] = None
-    ) -> None:
-        ...
-
-    def signature(self, value: Union[bytes, str]) -> bytes:
-        ...
-
-    def sign(self, value: Union[bytes, str], current_time: int) -> bytes:
-        ...
-
-    def unsign(
-        self,
-        signed_value: bytes,
-        max_age: Optional[Union[int, float, datetime.timedelta]] = None,
-    ) -> bytes:
-        ...
 
 
 class InvalidAlgorithm(ValueError):
