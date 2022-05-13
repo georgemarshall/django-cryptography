@@ -7,7 +7,6 @@ from cryptography.hazmat.primitives import hashes
 from django.conf import settings
 from django.test import SimpleTestCase
 from django.test.utils import freeze_time
-from django.utils.crypto import InvalidAlgorithm
 from django.utils.crypto import pbkdf2 as django_pbkdf2
 from django.utils.crypto import salted_hmac as django_salted_hmac
 
@@ -15,6 +14,7 @@ from django_cryptography.core import signing
 from django_cryptography.utils.crypto import (
     Fernet,
     FernetBytes,
+    InvalidAlgorithm,
     InvalidToken,
     constant_time_compare,
     pbkdf2,

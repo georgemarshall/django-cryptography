@@ -10,13 +10,19 @@ from cryptography.hazmat.primitives.hashes import HashAlgorithm
 from cryptography.hazmat.primitives.hmac import HMAC
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from django.utils import crypto
-from django.utils.crypto import InvalidAlgorithm
 from django.utils.encoding import force_bytes
 
 from ..conf import CryptographyConf
 from ..typing import Signer
 
 settings = CryptographyConf()
+
+
+# AddedInDjango30Warning: Remove when Django 2.2 leaves LTS
+class InvalidAlgorithm(ValueError):
+    """Algorithm is not supported by cryptography."""
+
+    pass
 
 
 class InvalidToken(Exception):
