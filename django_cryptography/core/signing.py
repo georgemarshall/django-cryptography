@@ -6,7 +6,6 @@ import time
 import zlib
 from typing import Any, Optional, Type, Union, cast
 
-from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.hmac import HMAC
 from django.conf import settings
 from django.core.signing import (
@@ -21,7 +20,7 @@ from django.utils import baseconv
 from django.utils.encoding import force_bytes
 
 from ..typing import Algorithm, Serializer
-from ..utils.crypto import InvalidAlgorithm, constant_time_compare, salted_hmac
+from ..utils.crypto import Hashes, InvalidAlgorithm, constant_time_compare, salted_hmac
 
 __all__ = [
     'BadSignature',
@@ -46,7 +45,10 @@ _SEP_UNSAFE = re.compile(r'^[A-z0-9-_=]*$')
 
 
 def base64_hmac(
-    salt: str, value: Union[bytes, str], key: Union[bytes, str], algorithm: str = 'sha1'
+    salt: str,
+    value: Union[bytes, str],
+    key: Union[bytes, str],
+    algorithm: Algorithm = 'sha1',
 ) -> str:
     return b64_encode(
         salted_hmac(salt, value, key, algorithm=algorithm).finalize()
@@ -217,21 +219,21 @@ class BytesSigner:
         self,
         key: Optional[Union[bytes, str]] = None,
         salt: Optional[str] = None,
-        algorithm: Optional[str] = None,
+        algorithm: Optional[Algorithm] = None,
     ) -> None:
         self.key = key or settings.SECRET_KEY
         self.salt = salt or f'{self.__class__.__module__}.{self.__class__.__name__}'
         self.algorithm = algorithm or 'sha256'
 
         try:
-            hasher = getattr(hashes, self.algorithm.upper())
+            hasher = getattr(Hashes, self.algorithm)
         except AttributeError as e:
             raise InvalidAlgorithm(
                 '%r is not an algorithm accepted by the cryptography module.'
                 % algorithm
             ) from e
 
-        self._digest_size = hasher.digest_size
+        self._digest_size = hasher.value.digest_size
 
     def signature(self, value: Union[bytes, str]) -> bytes:
         return salted_hmac(
@@ -255,20 +257,22 @@ class FernetSigner:
     version = b'\x80'
 
     def __init__(
-        self, key: Optional[Union[bytes, str]] = None, algorithm: Optional[str] = None
+        self,
+        key: Optional[Union[bytes, str]] = None,
+        algorithm: Optional[Algorithm] = None,
     ) -> None:
         self.key = key or settings.SECRET_KEY
         self.algorithm = algorithm or 'sha256'
 
         try:
-            hasher = getattr(hashes, self.algorithm.upper())
+            hasher = getattr(Hashes, self.algorithm)
         except AttributeError as e:
             raise InvalidAlgorithm(
                 '%r is not an algorithm accepted by the cryptography module.'
                 % algorithm
             ) from e
 
-        self.hasher = hasher()
+        self.hasher = hasher.value
 
     def signature(self, value: Union[bytes, str]) -> bytes:
         h = HMAC(
