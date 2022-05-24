@@ -1,4 +1,3 @@
-import binascii
 import hashlib
 import time
 import unittest
@@ -6,8 +5,7 @@ import unittest
 from cryptography.hazmat.primitives import hashes
 from django.conf import settings
 from django.test import SimpleTestCase
-from django.test.utils import freeze_time
-from django.utils.crypto import pbkdf2 as django_pbkdf2
+from django.test.utils import freeze_time, override_settings
 from django.utils.crypto import salted_hmac as django_salted_hmac
 
 from django_cryptography.core import signing
@@ -39,7 +37,6 @@ class TestUtilsCryptoMisc(SimpleTestCase):
         self.assertTrue(constant_time_compare('spam', 'spam'))
         self.assertFalse(constant_time_compare('spam', 'eggs'))
 
-    @unittest.expectedFailure
     def test_salted_hmac(self):
         tests = [
             ((b"salt", b"value"), {}, "b51a2e619c43b1ca4f91d15c57455521d71d61eb"),
@@ -81,16 +78,8 @@ class TestUtilsCryptoMisc(SimpleTestCase):
 
 
 class TestUtilsCryptoPBKDF2(unittest.TestCase):
-    digest_map = {
-        hashes.MD5: hashlib.md5,
-        hashes.SHA1: hashlib.sha1,
-        hashes.SHA224: hashlib.sha224,
-        hashes.SHA256: hashlib.sha256,
-        hashes.SHA384: hashlib.sha384,
-        hashes.SHA512: hashlib.sha512,
-    }
 
-    # http://tools.ietf.org/html/draft-josefsson-pbkdf2-test-vectors-06
+    # https://tools.ietf.org/html/draft-josefsson-pbkdf2-test-vectors-06
     rfc_vectors = [
         {
             "args": {
@@ -215,59 +204,53 @@ class TestUtilsCryptoPBKDF2(unittest.TestCase):
         },
     ]
 
-    def django_args(self, kwargs):
-        kwargs = kwargs.copy()
-        kwargs["digest"] = self.digest_map[kwargs["digest"].__class__]
-        return kwargs
-
-    def test_defaults(self):
-        result = pbkdf2('password', 'salt', 1, digest=hashes.SHA1())
-        self.assertEqual(
-            '0c60c80f961f0e71f3a9b524af6012062fe037a6',
-            binascii.hexlify(result).decode('ascii'),
-        )
-
     def test_public_vectors(self):
         for vector in self.rfc_vectors:
             result = pbkdf2(**vector['args'])
-            self.assertEqual(binascii.hexlify(result).decode('ascii'), vector['result'])
+            self.assertEqual(result.hex(), vector['result'])
 
     def test_regression_vectors(self):
         for vector in self.regression_vectors:
             result = pbkdf2(**vector['args'])
-            self.assertEqual(binascii.hexlify(result).decode('ascii'), vector['result'])
+            self.assertEqual(result.hex(), vector['result'])
 
-    def test_django_parity(self):
-        for vector in self.rfc_vectors:
-            self.assertEqual(
-                pbkdf2(**vector['args']),
-                django_pbkdf2(**self.django_args(vector['args'])),
-            )
+    def test_default_hmac_alg(self):
+        kwargs = {
+            "password": b"password",
+            "salt": b"salt",
+            "iterations": 1,
+            "dklen": 20,
+        }
+        self.assertEqual(
+            pbkdf2(**kwargs),
+            hashlib.pbkdf2_hmac(hash_name=hashlib.sha256().name, **kwargs),
+        )
 
 
 class FernetBytesTestCase(unittest.TestCase):
     def test_cryptography_key(self):
         self.assertEqual(
-            binascii.hexlify(settings.CRYPTOGRAPHY_KEY).decode('ascii'),
-            '3af94f1c73e82b00d41d2db759b54af2e31c55dc97a51c3c3ae8b83eb46dd2b8',
+            settings.CRYPTOGRAPHY_KEY.hex(),
+            '83c75905b45ce12bb61d2e883896d274c1790473186692519d076de55c49483c',
         )
 
     def test_encrypt_decrypt(self):
         value = b'hello'
         iv = b'0123456789abcdef'
         data = (
-            '8000000000075bcd153031323334353637383961626364656629b930b1955'
-            'ddaec2d74fb4ff565280abdc39baf116e80f116496cde9515bd7d938e5c74'
-            'd60bc186286e701ba4fb4004'
+            "8000000000075bcd15303132333435363738396162636465669a7ce822f47"
+            "33dd8ba87469b264d835c34b2892b06ec88098de6bcb6ca662f5e3240d5c2"
+            "f5af5728e6198c93a2888b78"
         )
         with freeze_time(123456789):
             fernet = FernetBytes()
             self.assertEqual(
                 fernet._encrypt_from_parts(value, int(time.time()), iv),
-                binascii.unhexlify(data),
+                bytes.fromhex(data),
             )
-            self.assertEqual(fernet.decrypt(binascii.unhexlify(data)), value)
+            self.assertEqual(fernet.decrypt(bytes.fromhex(data)), value)
 
+    @override_settings(SECRET_KEY="test_key")
     def test_decryptor_invalid_token(self):
         data = (
             '8000000000075bcd153031323334353637383961626364656629b930b1955'
@@ -277,8 +260,9 @@ class FernetBytesTestCase(unittest.TestCase):
         with freeze_time(123456789):
             fernet = FernetBytes()
             with self.assertRaises(InvalidToken):
-                fernet.decrypt(binascii.unhexlify(data))
+                fernet.decrypt(bytes.fromhex(data))
 
+    @override_settings(SECRET_KEY="test_key")
     def test_unpadder_invalid_token(self):
         data = (
             '8000000000075bcd15303132333435363738396162636465660ecd40b0f64'
@@ -288,7 +272,7 @@ class FernetBytesTestCase(unittest.TestCase):
         with freeze_time(123456789):
             fernet = FernetBytes()
             with self.assertRaises(InvalidToken):
-                fernet.decrypt(binascii.unhexlify(data))
+                fernet.decrypt(bytes.fromhex(data))
 
 
 class StandardFernetTestCase(unittest.TestCase):
@@ -320,8 +304,8 @@ class StandardFernetTestCase(unittest.TestCase):
         value = b'hello'
         iv = b'0123456789abcdef'
         data = (
-            b'gAAAAAAdwJ6wMDEyMzQ1Njc4OWFiY2RlZim5MLGVXdrsLXT7T_'
-            b'VlKAone9c6ZcGw7uRu-1l8eWy5Xh7MpqlL_A9g8xGWyTU8xA=='
+            b'gAAAAAAdwJ6wMDEyMzQ1Njc4OWFiY2RlZpp86CL0cz3YuodGmy'
+            b'ZNg1zHC5ForoIhr0F33y_CAv2hNHxmx-ZBcM7FK-Fimskaww=='
         )
         with freeze_time(499162800):
             fernet = Fernet()

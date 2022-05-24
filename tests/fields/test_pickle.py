@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from django_cryptography.fields import PickledField
 
-from .models import NullablePickledModel, PickledModel
+from .models import DefaultPickledModel, NullablePickledModel, PickledModel
 
 
 class TestSaveLoad(TestCase):
@@ -28,6 +28,13 @@ class TestSaveLoad(TestCase):
         instance = PickledModel(field=timezone.now())
         instance.save()
         loaded = PickledModel.objects.get()
+        self.assertEqual(instance.field, loaded.field)
+
+    def test_default(self):
+        instance = DefaultPickledModel()
+        instance.save()
+        loaded = DefaultPickledModel.objects.get(pk=instance.pk)
+        self.assertEqual(loaded.field, b"")
         self.assertEqual(instance.field, loaded.field)
 
     def test_default_null(self):

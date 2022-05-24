@@ -7,6 +7,10 @@ class PickledModel(models.Model):
     field = PickledField()
 
 
+class DefaultPickledModel(models.Model):
+    field = PickledField(default=b"")
+
+
 class NullablePickledModel(models.Model):
     field = PickledField(blank=True, null=True)
 

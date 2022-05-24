@@ -89,6 +89,24 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='DefaultPickledModel',
+            fields=[
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'field',
+                    django_cryptography.fields.PickledField(default=b""),
+                ),
+            ],
+        ),
+        migrations.CreateModel(
             name='NullablePickledModel',
             fields=[
                 (

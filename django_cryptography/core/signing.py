@@ -20,7 +20,7 @@ from django.core.signing import (
 from django.utils import baseconv
 from django.utils.encoding import force_bytes
 
-from ..typing import Serializer
+from ..typing import Algorithm, Serializer
 from ..utils.crypto import InvalidAlgorithm, constant_time_compare, salted_hmac
 
 __all__ = [
@@ -99,49 +99,37 @@ def loads(
 
 
 class Signer:
-    # RemovedInDjango40Warning.
-    legacy_algorithm = 'sha1'
-
     def __init__(
         self,
         key: Optional[Union[bytes, str]] = None,
         sep: str = ':',
         salt: Optional[str] = None,
-        algorithm: Optional[str] = None,
+        algorithm: Optional[Algorithm] = None,
     ) -> None:
         # Use of native strings in all versions of Python
         self.key = key or settings.SECRET_KEY
         self.sep = sep
         if _SEP_UNSAFE.match(self.sep):
             raise ValueError(
-                'Unsafe Signer separator: %r (cannot be empty or consist of '
-                'only A-z0-9-_=)' % sep,
+                "Unsafe Signer separator: %r (cannot be empty or consist of "
+                "only A-z0-9-_=)" % sep,
             )
-        self.salt = salt or f'{self.__class__.__module__}.{self.__class__.__name__}'
+        self.salt = salt or f"{self.__class__.__module__}.{self.__class__.__name__}"
         self.algorithm = algorithm or "sha256"
 
     def signature(self, value: Union[bytes, str]) -> str:
         return base64_hmac(
-            self.salt + 'signer', value, self.key, algorithm=self.algorithm
-        )
-
-    def _legacy_signature(self, value: Union[bytes, str]) -> str:
-        # RemovedInDjango40Warning.
-        return base64_hmac(
-            self.salt + 'signer', value, self.key, algorithm=self.legacy_algorithm
+            self.salt + "signer", value, self.key, algorithm=self.algorithm
         )
 
     def sign(self, value: str) -> str:
-        return f'{value}{self.sep}{self.signature(value)}'
+        return f"{value}{self.sep}{self.signature(value)}"
 
     def unsign(self, signed_value: str) -> str:
         if self.sep not in signed_value:
             raise BadSignature('No "%s" found in value' % self.sep)
         value, sig = signed_value.rsplit(self.sep, 1)
-        if constant_time_compare(sig, self.signature(value)) or (
-            self.legacy_algorithm
-            and constant_time_compare(sig, self._legacy_signature(value))
-        ):
+        if constant_time_compare(sig, self.signature(value)):
             return value
         raise BadSignature('Signature "%s" does not match' % sig)
 
