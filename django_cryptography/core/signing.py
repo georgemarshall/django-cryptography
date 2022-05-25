@@ -20,7 +20,7 @@ from django.utils import baseconv
 from django.utils.encoding import force_bytes
 
 from ..typing import Algorithm, Serializer
-from ..utils.crypto import Hashes, InvalidAlgorithm, constant_time_compare, salted_hmac
+from ..utils.crypto import HASHES, InvalidAlgorithm, constant_time_compare, salted_hmac
 
 __all__ = [
     'BadSignature',
@@ -226,14 +226,14 @@ class BytesSigner:
         self.algorithm = algorithm or 'sha256'
 
         try:
-            hasher = getattr(Hashes, self.algorithm)
-        except AttributeError as e:
+            hasher = HASHES[self.algorithm]
+        except KeyError as e:
             raise InvalidAlgorithm(
                 '%r is not an algorithm accepted by the cryptography module.'
                 % algorithm
             ) from e
 
-        self._digest_size = hasher.value.digest_size
+        self._digest_size = hasher.digest_size
 
     def signature(self, value: Union[bytes, str]) -> bytes:
         return salted_hmac(
@@ -265,14 +265,14 @@ class FernetSigner:
         self.algorithm = algorithm or 'sha256'
 
         try:
-            hasher = getattr(Hashes, self.algorithm)
-        except AttributeError as e:
+            hasher = HASHES[self.algorithm]
+        except KeyError as e:
             raise InvalidAlgorithm(
                 '%r is not an algorithm accepted by the cryptography module.'
                 % algorithm
             ) from e
 
-        self.hasher = hasher.value
+        self.hasher = hasher
 
     def signature(self, value: Union[bytes, str]) -> bytes:
         h = HMAC(

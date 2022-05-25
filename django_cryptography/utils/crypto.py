@@ -1,13 +1,11 @@
 import base64
-import enum
 import os
 import time
 from binascii import Error
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 from cryptography.hazmat.primitives import constant_time, hashes, padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.hashes import HashAlgorithm
 from cryptography.hazmat.primitives.hmac import HMAC
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from django.utils import crypto
@@ -30,22 +28,23 @@ class InvalidToken(Exception):
     pass
 
 
-class Hashes(enum.Enum):
-    blake2b = hashes.BLAKE2b(64)
-    blake2s = hashes.BLAKE2s(32)
-    md5 = hashes.MD5()
-    sha1 = hashes.SHA1()
-    sha224 = hashes.SHA224()
-    sha256 = hashes.SHA256()
-    sha384 = hashes.SHA384()
-    sha3_224 = hashes.SHA3_224()
-    sha3_256 = hashes.SHA3_256()
-    sha3_384 = hashes.SHA3_384()
-    sha3_512 = hashes.SHA3_512()
-    sha512 = hashes.SHA512()
-    sha512_224 = hashes.SHA512_224()
-    sha512_256 = hashes.SHA512_256()
-    sm3 = hashes.SM3()
+HASHES: Dict[Algorithm, hashes.HashAlgorithm] = {
+    "blake2b": hashes.BLAKE2b(64),
+    "blake2s": hashes.BLAKE2s(32),
+    "md5": hashes.MD5(),
+    "sha1": hashes.SHA1(),
+    "sha224": hashes.SHA224(),
+    "sha256": hashes.SHA256(),
+    "sha384": hashes.SHA384(),
+    "sha3_224": hashes.SHA3_224(),
+    "sha3_256": hashes.SHA3_256(),
+    "sha3_384": hashes.SHA3_384(),
+    "sha3_512": hashes.SHA3_512(),
+    "sha512": hashes.SHA512(),
+    "sha512_224": hashes.SHA512_224(),
+    "sha512_256": hashes.SHA512_256(),
+    "sm3": hashes.SM3(),
+}
 
 
 def salted_hmac(
@@ -68,15 +67,15 @@ def salted_hmac(
     key_salt = force_bytes(key_salt)
     secret = force_bytes(secret)
     try:
-        hasher = getattr(Hashes, algorithm)
-    except AttributeError as e:
+        hasher = HASHES[algorithm]
+    except KeyError as e:
         raise InvalidAlgorithm(
             '%r is not an algorithm accepted by the cryptography module.' % algorithm
         ) from e
 
     # We need to generate a derived key from our base key.  We can do this by
     # passing the key_salt and our base key through a pseudo-random function.
-    digest = hashes.Hash(hasher.value, backend=settings.CRYPTOGRAPHY_BACKEND)
+    digest = hashes.Hash(hasher, backend=settings.CRYPTOGRAPHY_BACKEND)
     digest.update(key_salt + secret)
     key = digest.finalize()
 
@@ -84,7 +83,7 @@ def salted_hmac(
     # line is redundant and could be replaced by key = key_salt + secret, since
     # the hmac module does the same thing for keys longer than the block size.
     # However, we need to ensure that we *always* do this.
-    h = HMAC(key, hasher.value, backend=settings.CRYPTOGRAPHY_BACKEND)
+    h = HMAC(key, hasher, backend=settings.CRYPTOGRAPHY_BACKEND)
     h.update(force_bytes(value))
     return h
 
@@ -102,7 +101,7 @@ def pbkdf2(
     salt: Union[bytes, str],
     iterations: int,
     dklen: int = 0,
-    digest: HashAlgorithm = None,
+    digest: hashes.HashAlgorithm = None,
 ) -> bytes:
     """
     Implements PBKDF2 with the same API as Django's existing
