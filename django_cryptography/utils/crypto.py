@@ -52,7 +52,7 @@ def salted_hmac(
     value: Union[bytes, str],
     secret: Union[bytes, str] = None,
     *,
-    algorithm: Algorithm = 'sha1',
+    algorithm: Algorithm = "sha1",
 ) -> HMAC:
     """
     Return the HMAC of 'value', using a key generated from key_salt and a
@@ -70,7 +70,7 @@ def salted_hmac(
         hasher = HASHES[algorithm]
     except KeyError as e:
         raise InvalidAlgorithm(
-            '%r is not an algorithm accepted by the cryptography module.' % algorithm
+            "%r is not an algorithm accepted by the cryptography module." % algorithm
         ) from e
 
     # We need to generate a derived key from our base key.  We can do this by

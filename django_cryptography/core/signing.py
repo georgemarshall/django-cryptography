@@ -23,32 +23,32 @@ from ..typing import Algorithm, Serializer
 from ..utils.crypto import HASHES, InvalidAlgorithm, constant_time_compare, salted_hmac
 
 __all__ = [
-    'BadSignature',
-    'SignatureExpired',
-    'b64_encode',
-    'b64_decode',
-    'base64_hmac',
-    'get_cookie_signer',
-    'JSONSerializer',
-    'dumps',
-    'loads',
-    'Signer',
-    'TimestampSigner',
-    'BytesSigner',
-    'FernetSigner',
+    "BadSignature",
+    "SignatureExpired",
+    "b64_encode",
+    "b64_decode",
+    "base64_hmac",
+    "get_cookie_signer",
+    "JSONSerializer",
+    "dumps",
+    "loads",
+    "Signer",
+    "TimestampSigner",
+    "BytesSigner",
+    "FernetSigner",
 ]
 
 _MAX_CLOCK_SKEW = 60
 # RemovedInDjango30Warning: when the deprecation ends, replace with:
 # _SEP_UNSAFE = _lazy_re_compile(r'^[A-z0-9-_=]*$')
-_SEP_UNSAFE = re.compile(r'^[A-z0-9-_=]*$')
+_SEP_UNSAFE = re.compile(r"^[A-z0-9-_=]*$")
 
 
 def base64_hmac(
     salt: str,
     value: Union[bytes, str],
     key: Union[bytes, str],
-    algorithm: Algorithm = 'sha1',
+    algorithm: Algorithm = "sha1",
 ) -> str:
     return b64_encode(
         salted_hmac(salt, value, key, algorithm=algorithm).finalize()
@@ -58,7 +58,7 @@ def base64_hmac(
 def dumps(
     obj: Any,
     key: Optional[Union[bytes, str]] = None,
-    salt: str = 'django.core.signing',
+    salt: str = "django.core.signing",
     serializer: Type[Serializer] = JSONSerializer,
     compress: bool = False,
 ) -> str:
@@ -86,7 +86,7 @@ def dumps(
 def loads(
     s: str,
     key: Optional[Union[bytes, str]] = None,
-    salt: str = 'django.core.signing',
+    salt: str = "django.core.signing",
     serializer: Type[Serializer] = JSONSerializer,
     max_age: Optional[Union[int, datetime.timedelta]] = None,
 ) -> Any:
@@ -104,7 +104,7 @@ class Signer:
     def __init__(
         self,
         key: Optional[Union[bytes, str]] = None,
-        sep: str = ':',
+        sep: str = ":",
         salt: Optional[str] = None,
         algorithm: Optional[Algorithm] = None,
     ) -> None:
@@ -162,7 +162,7 @@ class Signer:
                 is_compressed = True
         base64d = b64_encode(data).decode()
         if is_compressed:
-            base64d = '.' + base64d
+            base64d = "." + base64d
         return self.sign(base64d)
 
     def unsign_object(
@@ -174,7 +174,7 @@ class Signer:
         # Signer.unsign() returns str but base64 and zlib compression operate
         # on bytes.
         base64d = self.unsign(signed_obj, **kwargs).encode()
-        decompress = base64d[:1] == b'.'
+        decompress = base64d[:1] == b"."
         if decompress:
             # It's compressed; uncompress it first.
             base64d = base64d[1:]
@@ -189,7 +189,7 @@ class TimestampSigner(Signer):
         return baseconv.base62.encode(int(time.time()))
 
     def sign(self, value: str) -> str:
-        value = f'{value}{self.sep}{self.timestamp()}'
+        value = f"{value}{self.sep}{self.timestamp()}"
         return super().sign(value)
 
     def unsign(
@@ -209,7 +209,7 @@ class TimestampSigner(Signer):
             # Check timestamp is not older than max_age
             age = time.time() - baseconv.base62.decode(timestamp)
             if age > max_age:
-                raise SignatureExpired(f'Signature age {age} > {max_age} seconds')
+                raise SignatureExpired(f"Signature age {age} > {max_age} seconds")
         return value
 
 
@@ -221,14 +221,14 @@ class BytesSigner:
         algorithm: Optional[Algorithm] = None,
     ) -> None:
         self.key = key or settings.SECRET_KEY
-        self.salt = salt or f'{self.__class__.__module__}.{self.__class__.__name__}'
-        self.algorithm = algorithm or 'sha256'
+        self.salt = salt or f"{self.__class__.__module__}.{self.__class__.__name__}"
+        self.algorithm = algorithm or "sha256"
 
         try:
             hasher = HASHES[self.algorithm]
         except KeyError as e:
             raise InvalidAlgorithm(
-                '%r is not an algorithm accepted by the cryptography module.'
+                "%r is not an algorithm accepted by the cryptography module."
                 % algorithm
             ) from e
 
@@ -236,7 +236,7 @@ class BytesSigner:
 
     def signature(self, value: Union[bytes, str]) -> bytes:
         return salted_hmac(
-            self.salt + 'signer', value, self.key, algorithm=self.algorithm
+            self.salt + "signer", value, self.key, algorithm=self.algorithm
         ).finalize()
 
     def sign(self, value: Union[bytes, str]) -> bytes:
@@ -253,7 +253,7 @@ class BytesSigner:
 
 
 class FernetSigner:
-    version = b'\x80'
+    version = b"\x80"
 
     def __init__(
         self,
@@ -261,13 +261,13 @@ class FernetSigner:
         algorithm: Optional[Algorithm] = None,
     ) -> None:
         self.key = key or settings.SECRET_KEY
-        self.algorithm = algorithm or 'sha256'
+        self.algorithm = algorithm or "sha256"
 
         try:
             hasher = HASHES[self.algorithm]
         except KeyError as e:
             raise InvalidAlgorithm(
-                '%r is not an algorithm accepted by the cryptography module.'
+                "%r is not an algorithm accepted by the cryptography module."
                 % algorithm
             ) from e
 
@@ -281,7 +281,7 @@ class FernetSigner:
         return h.finalize()
 
     def sign(self, value: Union[bytes, str], current_time: int) -> bytes:
-        payload = struct.pack('>cQ', self.version, current_time)
+        payload = struct.pack(">cQ", self.version, current_time)
         payload += force_bytes(value)
         return payload + self.signature(payload)
 
@@ -294,21 +294,21 @@ class FernetSigner:
         Retrieve original value and check it wasn't signed more
         than max_age seconds ago.
         """
-        h_size, d_size = struct.calcsize('>cQ'), self.hasher.digest_size
-        fmt = '>cQ%ds%ds' % (len(signed_value) - h_size - d_size, d_size)
+        h_size, d_size = struct.calcsize(">cQ"), self.hasher.digest_size
+        fmt = ">cQ%ds%ds" % (len(signed_value) - h_size - d_size, d_size)
         try:
             version, timestamp, value, sig = struct.unpack(fmt, signed_value)
         except struct.error:
-            raise BadSignature('Signature is not valid')
+            raise BadSignature("Signature is not valid")
         if version != self.version:
-            raise BadSignature('Signature version not supported')
+            raise BadSignature("Signature version not supported")
         if max_age is not None:
             if isinstance(max_age, datetime.timedelta):
                 max_age = max_age.total_seconds()
             # Check timestamp is not older than max_age
             age = abs(time.time() - timestamp)
             if age > max_age + _MAX_CLOCK_SKEW:
-                raise SignatureExpired(f'Signature age {age} > {max_age} seconds')
+                raise SignatureExpired(f"Signature age {age} > {max_age} seconds")
         if constant_time_compare(sig, self.signature(signed_value[:-d_size])):
             return value
         raise BadSignature('Signature "%r" does not match' % binascii.b2a_base64(sig))

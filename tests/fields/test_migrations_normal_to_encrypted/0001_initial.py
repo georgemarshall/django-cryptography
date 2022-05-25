@@ -11,149 +11,149 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='EncryptedCharModel',
+            name="EncryptedCharModel",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('field', models.CharField(max_length=15)),
+                ("field", models.CharField(max_length=15)),
             ],
         ),
         migrations.CreateModel(
-            name='EncryptedDateTimeModel',
+            name="EncryptedDateTimeModel",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('datetime', models.DateTimeField()),
-                ('date', models.DateField()),
-                ('time', models.TimeField()),
-                ('auto_now', models.DateTimeField(auto_now=True)),
+                ("datetime", models.DateTimeField()),
+                ("date", models.DateField()),
+                ("time", models.TimeField()),
+                ("auto_now", models.DateTimeField(auto_now=True)),
             ],
         ),
         migrations.CreateModel(
-            name='EncryptedIntegerModel',
+            name="EncryptedIntegerModel",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('field', models.IntegerField()),
+                ("field", models.IntegerField()),
             ],
         ),
         migrations.CreateModel(
-            name='EncryptedNullableIntegerModel',
+            name="EncryptedNullableIntegerModel",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('field', models.IntegerField(blank=True, null=True)),
+                ("field", models.IntegerField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='EncryptedTTLIntegerModel',
+            name="EncryptedTTLIntegerModel",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('field', models.IntegerField()),
+                ("field", models.IntegerField()),
             ],
         ),
         migrations.CreateModel(
-            name='DefaultPickledModel',
+            name="DefaultPickledModel",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'field',
+                    "field",
                     django_cryptography.fields.PickledField(default=b""),
                 ),
             ],
         ),
         migrations.CreateModel(
-            name='NullablePickledModel',
+            name="NullablePickledModel",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'field',
+                    "field",
                     django_cryptography.fields.PickledField(blank=True, null=True),
                 ),
             ],
         ),
         migrations.CreateModel(
-            name='OtherEncryptedTypesModel',
+            name="OtherEncryptedTypesModel",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('ip', models.GenericIPAddressField()),
-                ('uuid', models.UUIDField()),
-                ('decimal', models.DecimalField(decimal_places=2, max_digits=5)),
+                ("ip", models.GenericIPAddressField()),
+                ("uuid", models.UUIDField()),
+                ("decimal", models.DecimalField(decimal_places=2, max_digits=5)),
             ],
         ),
         migrations.CreateModel(
-            name='PickledModel',
+            name="PickledModel",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('field', django_cryptography.fields.PickledField()),
+                ("field", django_cryptography.fields.PickledField()),
             ],
         ),
     ]

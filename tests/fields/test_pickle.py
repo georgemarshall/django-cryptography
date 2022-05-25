@@ -19,7 +19,7 @@ class TestSaveLoad(TestCase):
         self.assertEqual(instance.field, loaded.field)
 
     def test_string(self):
-        instance = PickledModel(field='Hello, world!')
+        instance = PickledModel(field="Hello, world!")
         instance.save()
         loaded = PickledModel.objects.get()
         self.assertEqual(instance.field, loaded.field)
@@ -111,11 +111,11 @@ class TestSerialization(TestCase):
 
     def test_dumping(self):
         instance = PickledModel(field=[1, 2, None])
-        data = serializers.serialize('json', [instance])
+        data = serializers.serialize("json", [instance])
         self.assertEqual(json.loads(self.test_data), json.loads(data))
 
     def test_loading(self):
-        instance = list(serializers.deserialize('json', self.test_data))[0].object
+        instance = list(serializers.deserialize("json", self.test_data))[0].object
         self.assertEqual([1, 2, None], instance.field)
 
 

@@ -26,7 +26,7 @@ from django_cryptography.core.signing import SignatureExpired
 from django_cryptography.typing import DatabaseWrapper
 from django_cryptography.utils.crypto import FernetBytes
 
-F = TypeVar('F', bound=models.Field)
+F = TypeVar("F", bound=models.Field)
 FIELD_CACHE: Dict[type, type] = {}
 
 Expired = object()
@@ -39,8 +39,8 @@ class PickledField(models.BinaryField):
     """
 
     description = _("Pickled data")
-    empty_values = [None, b'']
-    supported_lookups = ('exact', 'in', 'isnull')
+    empty_values = [None, b""]
+    supported_lookups = ("exact", "in", "isnull")
 
     def _dump(self, value: Any) -> bytes:
         return pickle.dumps(value)
@@ -72,7 +72,7 @@ class PickledField(models.BinaryField):
 
     def value_to_string(self, obj: models.Model) -> str:
         """Pickled data is serialized as base64"""
-        return b64encode(self._dump(self.value_from_object(obj))).decode('ascii')
+        return b64encode(self._dump(self.value_from_object(obj))).decode("ascii")
 
     def to_python(self, value: Optional[Any]) -> Optional[Any]:
         # If it's a string, it should be base64-encoded data
@@ -95,20 +95,20 @@ class EncryptedMixin(models.Field):
         The expired value will return an :class:`Expired` object.
     """
 
-    supported_lookups = ('isnull',)
+    supported_lookups = ("isnull",)
 
     def __init__(self, *args, **kwargs) -> None:
         self.base_class: Type[models.Field]
         self.wasinstance: bool
 
-        self.key: Union[bytes, str] = kwargs.pop('key', None)
-        self.ttl: int = kwargs.pop('ttl', None)
+        self.key: Union[bytes, str] = kwargs.pop("key", None)
+        self.ttl: int = kwargs.pop("ttl", None)
 
         self._fernet = FernetBytes(self.key)
         super().__init__(*args, **kwargs)
 
     def _description(self) -> str:
-        return _('Encrypted %s') % super().description
+        return _("Encrypted %s") % super().description
 
     description = property(_description)  # type: ignore[assignment]
 
@@ -123,13 +123,13 @@ class EncryptedMixin(models.Field):
 
     def check(self, **kwargs: Any) -> List[CheckMessage]:
         errors = super().check(**kwargs)
-        if getattr(self, 'remote_field', None):
+        if getattr(self, "remote_field", None):
             errors.append(
                 checks.Error(
-                    'Base field for encrypted cannot be a related field.',
+                    "Base field for encrypted cannot be a related field.",
                     hint=None,
                     obj=self,
-                    id='encrypted.E002',
+                    id="encrypted.E002",
                 )
             )
         return errors
@@ -151,7 +151,7 @@ class EncryptedMixin(models.Field):
             args = [self.base_class(*args, **kwargs)]
             kwargs = {}
             if self.ttl is not None:
-                kwargs['ttl'] = self.ttl
+                kwargs["ttl"] = self.ttl
         return name, path, args, kwargs
 
     def get_lookup(self, lookup_name: str) -> Optional[Any]:
@@ -193,9 +193,9 @@ def get_encrypted_field(base_class: Type[F], wasinstance: bool) -> Type[F]:
     return FIELD_CACHE.setdefault(
         base_class,
         type(
-            ('Encrypted' if wasinstance else '') + base_class.__name__,
+            ("Encrypted" if wasinstance else "") + base_class.__name__,
             (EncryptedMixin, base_class),
-            {'base_class': base_class, 'wasinstance': wasinstance},
+            {"base_class": base_class, "wasinstance": wasinstance},
         ),
     )
 
@@ -231,5 +231,5 @@ def encrypt(base_field, key: Union[bytes, str] = None, ttl: int = None):
         return get_encrypted_field(base_field, False)
 
     name, path, args, kwargs = base_field.deconstruct()
-    kwargs.update({'key': key, 'ttl': ttl})
+    kwargs.update({"key": key, "ttl": ttl})
     return get_encrypted_field(type(base_field), True)(*args, **kwargs)
