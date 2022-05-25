@@ -4,7 +4,7 @@ import re
 import struct
 import time
 import zlib
-from typing import Any, Optional, Type, Union, cast
+from typing import Any, Optional, Type, Union
 
 from cryptography.hazmat.primitives.hmac import HMAC
 from django.conf import settings
@@ -203,12 +203,11 @@ class TimestampSigner(Signer):
         """
         result = super().unsign(value)
         value, timestamp = result.rsplit(self.sep, 1)
-        timestamp = baseconv.base62.decode(timestamp)
         if max_age is not None:
             if isinstance(max_age, datetime.timedelta):
                 max_age = max_age.total_seconds()
             # Check timestamp is not older than max_age
-            age = time.time() - cast(int, timestamp)
+            age = time.time() - baseconv.base62.decode(timestamp)
             if age > max_age:
                 raise SignatureExpired(f'Signature age {age} > {max_age} seconds')
         return value
