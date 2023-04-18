@@ -275,7 +275,9 @@ class FernetSigner:
 
     def signature(self, value: Union[bytes, str]) -> bytes:
         h = HMAC(
-            force_bytes(self.key), self.hasher, backend=settings.CRYPTOGRAPHY_BACKEND
+            force_bytes(self.key),
+            self.hasher,
+            backend=settings.CRYPTOGRAPHY_BACKEND,  # type: ignore
         )
         h.update(force_bytes(value))
         return h.finalize()

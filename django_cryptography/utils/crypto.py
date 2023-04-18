@@ -50,7 +50,7 @@ HASHES: Dict[Algorithm, hashes.HashAlgorithm] = {
 def salted_hmac(
     key_salt: Union[bytes, str],
     value: Union[bytes, str],
-    secret: Union[bytes, str] = None,
+    secret: Optional[Union[bytes, str]] = None,
     *,
     algorithm: Algorithm = "sha1",
 ) -> HMAC:
@@ -101,7 +101,7 @@ def pbkdf2(
     salt: Union[bytes, str],
     iterations: int,
     dklen: int = 0,
-    digest: hashes.HashAlgorithm = None,
+    digest: Optional[hashes.HashAlgorithm] = None,
 ) -> bytes:
     """
     Implements PBKDF2 with the same API as Django's existing
@@ -126,7 +126,9 @@ class FernetBytes:
     also an emphasis on using Django's settings system for sane defaults.
     """
 
-    def __init__(self, key: Union[bytes, str] = None, signer: Signer = None) -> None:
+    def __init__(
+        self, key: Optional[Union[bytes, str]] = None, signer: Optional[Signer] = None
+    ) -> None:
         if signer is None:
             from ..core.signing import FernetSigner
 
@@ -181,7 +183,9 @@ class FernetBytes:
 
 
 class Fernet(FernetBytes):
-    def __init__(self, key: Union[bytes, str] = None, signer: Signer = None) -> None:
+    def __init__(
+        self, key: Optional[Union[bytes, str]] = None, signer: Optional[Signer] = None
+    ) -> None:
         if signer is None:
             from ..core.signing import FernetSigner
 

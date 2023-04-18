@@ -210,7 +210,9 @@ def encrypt(base_field: Type[F]) -> Type[F]:
     ...
 
 
-def encrypt(base_field, key: Union[bytes, str] = None, ttl: int = None):
+def encrypt(
+    base_field, key: Optional[Union[bytes, str]] = None, ttl: Optional[int] = None
+):
     """
     A decorator for creating encrypted model fields.
 
