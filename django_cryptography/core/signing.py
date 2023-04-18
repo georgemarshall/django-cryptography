@@ -16,11 +16,18 @@ from django.core.signing import (
     b64_encode,
     get_cookie_signer,
 )
-from django.utils import baseconv
 from django.utils.encoding import force_bytes
 
 from ..typing import Algorithm, Serializer
 from ..utils.crypto import HASHES, InvalidAlgorithm, constant_time_compare, salted_hmac
+
+try:
+    from django.core.signing import b62_decode, b62_encode
+except ImportError:
+    from django.utils import baseconv
+
+    # Required for Django 3.2 support
+    b62_decode, b62_encode = baseconv.base62.decode, baseconv.base62.encode
 
 __all__ = [
     "BadSignature",
@@ -186,7 +193,7 @@ class Signer:
 
 class TimestampSigner(Signer):
     def timestamp(self) -> str:
-        return baseconv.base62.encode(int(time.time()))
+        return b62_encode(int(time.time()))
 
     def sign(self, value: str) -> str:
         value = f"{value}{self.sep}{self.timestamp()}"
@@ -207,7 +214,7 @@ class TimestampSigner(Signer):
             if isinstance(max_age, datetime.timedelta):
                 max_age = max_age.total_seconds()
             # Check timestamp is not older than max_age
-            age = time.time() - baseconv.base62.decode(timestamp)
+            age = time.time() - b62_decode(timestamp)
             if age > max_age:
                 raise SignatureExpired(f"Signature age {age} > {max_age} seconds")
         return value
