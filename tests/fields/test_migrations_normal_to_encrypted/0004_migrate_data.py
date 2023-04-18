@@ -112,7 +112,6 @@ def reverse_other_encrypted_types(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("fields", "0003_add_encrypted_fields"),
     ]

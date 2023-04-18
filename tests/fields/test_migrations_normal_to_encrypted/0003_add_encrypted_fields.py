@@ -4,7 +4,6 @@ import django_cryptography.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("fields", "0002_rename_fields"),
     ]
