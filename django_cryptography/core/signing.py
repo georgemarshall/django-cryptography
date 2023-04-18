@@ -22,7 +22,7 @@ from ..typing import Algorithm, Serializer
 from ..utils.crypto import HASHES, InvalidAlgorithm, constant_time_compare, salted_hmac
 
 try:
-    from django.core.signing import b62_decode, b62_encode
+    from django.core.signing import b62_decode, b62_encode  # type: ignore
 except ImportError:
     from django.utils import baseconv
 
