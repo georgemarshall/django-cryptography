@@ -8,7 +8,6 @@ from typing import Any, Optional, Type, Union
 from cryptography.hazmat.primitives.hmac import HMAC
 from django.conf import settings
 from django.core.signing import (
-    _SEP_UNSAFE,
     BadSignature,
     JSONSerializer,
     SignatureExpired,
@@ -17,6 +16,7 @@ from django.core.signing import (
     get_cookie_signer,
 )
 from django.utils.encoding import force_bytes
+from django.utils.regex_helper import _lazy_re_compile
 
 from ..typing import Algorithm, Serializer
 from ..utils.crypto import HASHES, InvalidAlgorithm, constant_time_compare, salted_hmac
@@ -46,6 +46,7 @@ __all__ = [
 ]
 
 _MAX_CLOCK_SKEW = 60
+_SEP_UNSAFE = _lazy_re_compile(r"^[A-z0-9-_=]*$")
 
 
 def base64_hmac(
