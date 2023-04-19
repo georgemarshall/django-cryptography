@@ -169,16 +169,16 @@ class FernetBytes:
         plaintext_padded = decryptor.update(ciphertext)
         try:
             plaintext_padded += decryptor.finalize()
-        except ValueError:
-            raise InvalidToken
+        except ValueError as err:
+            raise InvalidToken from err
 
         # Remove padding
         unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
         unpadded = unpadder.update(plaintext_padded)
         try:
             unpadded += unpadder.finalize()
-        except ValueError:
-            raise InvalidToken
+        except ValueError as err:
+            raise InvalidToken from err
         return unpadded
 
 
@@ -206,6 +206,6 @@ class Fernet(FernetBytes):
     def decrypt(self, token: bytes, ttl: Optional[int] = None) -> bytes:
         try:
             data = base64.urlsafe_b64decode(token)
-        except (TypeError, Error):
-            raise InvalidToken
+        except (TypeError, Error) as err:
+            raise InvalidToken from err
         return super().decrypt(data, ttl)

@@ -20,30 +20,14 @@ repos:
         exclude: ^docs/
       - id: mixed-line-ending
       - id: trailing-whitespace
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.1
-    hooks:
-      - id: pyupgrade
-        exclude: ^docs/
-        args: [--py37-plus]
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        name: isort
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
       - id: black
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.261
     hooks:
-      - id: flake8
-        exclude: ^docs/
-        additional_dependencies:
-          - flake8-bugbear==23.3.23
-          - flake8-builtins==2.1.0
-          - flake8-comprehensions==3.12.0
+      - id: ruff
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.0.0-alpha.6
     hooks:

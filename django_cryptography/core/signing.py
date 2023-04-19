@@ -1,6 +1,5 @@
 import binascii
 import datetime
-import re
 import struct
 import time
 import zlib
@@ -9,6 +8,7 @@ from typing import Any, Optional, Type, Union
 from cryptography.hazmat.primitives.hmac import HMAC
 from django.conf import settings
 from django.core.signing import (
+    _SEP_UNSAFE,
     BadSignature,
     JSONSerializer,
     SignatureExpired,
@@ -46,9 +46,6 @@ __all__ = [
 ]
 
 _MAX_CLOCK_SKEW = 60
-# RemovedInDjango30Warning: when the deprecation ends, replace with:
-# _SEP_UNSAFE = _lazy_re_compile(r'^[A-z0-9-_=]*$')
-_SEP_UNSAFE = re.compile(r"^[A-z0-9-_=]*$")
 
 
 def base64_hmac(
@@ -307,8 +304,8 @@ class FernetSigner:
         fmt = ">cQ%ds%ds" % (len(signed_value) - h_size - d_size, d_size)
         try:
             version, timestamp, value, sig = struct.unpack(fmt, signed_value)
-        except struct.error:
-            raise BadSignature("Signature is not valid")
+        except struct.error as err:
+            raise BadSignature("Signature is not valid") from err
         if version != self.version:
             raise BadSignature("Signature version not supported")
         if max_age is not None:
