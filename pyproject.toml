@@ -57,13 +57,15 @@ target-version = "py37"
 [tool.tox]
 # language=ini
 legacy_tox_ini = """
+
 [tox]
 min_version = 4.0
 envlist =
     {py37,py38,py39,py310}-django32,
     {py38,py39,py310}-django41,
     {py38,py39,py310,py311}-django42,
-    {py310,py311}-djangomain,
+    {py310,py311,py312}-django50,
+    {py310,py311,py312}-djangomain,
 isolated_build = True
 
 [testenv]
@@ -72,6 +74,7 @@ deps =
     django32: Django>=3.2,<3.3
     django41: Django>=4.1,<4.2
     django42: Django>=4.2,<4.3
+    django50: Django>=5.0,<5.1
     djangomain: https://github.com/django/django/archive/main.tar.gz
 commands =
     {envpython} -m coverage run --context='{envname}' runtests.py {posargs}
