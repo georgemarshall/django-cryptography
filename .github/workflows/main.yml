@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: setup-python-${{ runner.os }}-python-${{ matrix.python-version }}-pip-${{ hashFiles('**/setup.cfg') }}

@@ -19,7 +19,7 @@ jobs:
           # Use the lowest version of Python supported
           python-version: "3.7"
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: setup-python-${{ runner.os }}-mypy-pip-${{ hashFiles('**/setup.cfg') }}
