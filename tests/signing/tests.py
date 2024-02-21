@@ -113,6 +113,7 @@ class TestSigner(SimpleTestCase):
             ["a", "list"],
             "a string \u2019",
             {"a": "dictionary"},
+            "a" * 100,
         ]
         for obj in tests:
             with self.subTest(obj=obj):
@@ -310,6 +311,10 @@ class TestBytesSigner(SimpleTestCase):
             s.sign("foo"),
         )
 
+    def test_unsupported_algorithm(self):
+        with self.assertRaises(InvalidAlgorithm):
+            signing.BytesSigner("predictable-key", algorithm="whatever")
+
 
 class TestFernetSigner(SimpleTestCase):
     def test_fernet_signer(self):
@@ -344,9 +349,10 @@ class TestFernetSigner(SimpleTestCase):
             # Break the signature
             signer.unsign(value[:-1] + b" ")
 
-    def test_unsupported(self):
-        value = b"hello"
-        signer = signing.FernetSigner("predictable-key")
-
         with self.assertRaises(signing.BadSignature):
-            signer.unsign(value)
+            # Break everything
+            signer.unsign(b"hello")
+
+    def test_unsupported_algorithm(self):
+        with self.assertRaises(InvalidAlgorithm):
+            signing.FernetSigner("predictable-key", algorithm="whatever")
