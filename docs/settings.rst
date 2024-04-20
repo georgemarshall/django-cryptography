@@ -18,8 +18,7 @@ The digest algorithm to use for signing and key generation.
 
 Default: :obj:`None`
 
-When value is :obj:`None` a key will be derived from
-``SECRET_KEY``. Otherwise the value will be used for the key.
+This value should not be used, instead the key will be derived from ``SECRET_KEY``. Due to this depedency please consider whether, and how, the ``SECRET_KEY`` might change after encryption has taken place. 
 
 :const:`CRYPTOGRAPHY_SALT`
 --------------------------
