@@ -23,7 +23,7 @@ from ..utils.crypto import HASHES, InvalidAlgorithm, constant_time_compare, salt
 
 try:
     # Django 5
-    from django.core.singing import Signer as django_signer  # type: ignore
+    from django.core.signing import Signer as django_signer  # type: ignore
     
     b62_decode = django_signer.unsign
     b62_encode = django_signer.sign
