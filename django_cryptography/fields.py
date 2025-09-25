@@ -23,7 +23,7 @@ from django.utils.encoding import force_bytes
 from django.utils.translation import gettext_lazy as _
 
 from django_cryptography.core.signing import SignatureExpired
-from django_cryptography.typing import DatabaseWrapper
+from django_cryptography.type_hints import DatabaseWrapper
 from django_cryptography.utils.crypto import FernetBytes
 
 F = TypeVar("F", bound=models.Field)

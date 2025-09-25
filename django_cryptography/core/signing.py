@@ -18,7 +18,7 @@ from django.core.signing import (
 from django.utils.encoding import force_bytes
 from django.utils.regex_helper import _lazy_re_compile
 
-from ..typing import Algorithm, Serializer
+from ..type_hints import Algorithm, Serializer
 from ..utils.crypto import HASHES, InvalidAlgorithm, constant_time_compare, salted_hmac
 
 try:

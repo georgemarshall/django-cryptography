@@ -12,7 +12,7 @@ from django.utils import crypto
 from django.utils.encoding import force_bytes
 
 from ..conf import CryptographyConf
-from ..typing import Algorithm, Signer
+from ..type_hints import Algorithm, Signer
 
 settings = CryptographyConf()
 
