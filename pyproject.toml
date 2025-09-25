@@ -60,14 +60,16 @@ legacy_tox_ini = """
 [tox]
 min_version = 4.0
 envlist =
-    {py39,py310,py311}-django42,
-    {py311,py312}-djangomain,
+    {py39,py310,py311,py312}-django42,
+    {py311,py312,py313}-django51,
+    {py311,py312,py313}-djangomain,
 isolated_build = True
 
 [testenv]
 deps =
     coverage[toml]
     django42: Django>=4.2,<4.3
+    django51: Django>=5.1,<5.2
     djangomain: https://github.com/django/django/archive/main.tar.gz
 commands =
     {envpython} -m coverage run --context='{envname}' runtests.py {posargs}
