@@ -1,6 +1,6 @@
 from django.db import migrations, models
 
-import django_cryptography.fields
+import django_crypto.fields
 
 
 class Migration(migrations.Migration):
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                         primary_key=True,
                     ),
                 ),
-                ("field", django_cryptography.fields.encrypt(models.IntegerField())),
+                ("field", django_crypto.fields.encrypt(models.IntegerField())),
             ],
         ),
     ]

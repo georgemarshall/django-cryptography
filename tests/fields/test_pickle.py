@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 from django.utils import timezone
 
-from django_cryptography.fields import PickledField
+from django_crypto.fields import PickledField
 
 from .models import DefaultPickledModel, NullablePickledModel, PickledModel
 
@@ -89,7 +89,7 @@ class TestMigrations(TestCase):
     def test_deconstruct(self):
         field = PickledField()
         name, path, args, kwargs = field.deconstruct()
-        self.assertEqual("django_cryptography.fields.PickledField", path)
+        self.assertEqual("django_crypto.fields.PickledField", path)
         self.assertEqual(args, [])
         self.assertEqual(kwargs, {})
 

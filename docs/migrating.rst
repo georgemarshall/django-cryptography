@@ -78,7 +78,7 @@ Add the new encrypted field using the original name from our field.
            migrations.AddField(
                model_name='encryptedcharmodel',
                name='field',
-               field=django_cryptography.fields.encrypt(
+               field=django_crypto.fields.encrypt(
                    models.CharField(default=None, max_length=15)),
                preserve_default=False,
            ),

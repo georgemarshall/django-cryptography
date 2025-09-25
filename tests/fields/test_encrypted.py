@@ -12,7 +12,7 @@ from django.test import TestCase, TransactionTestCase, override_settings
 from django.test.utils import freeze_time
 from django.utils import timezone
 
-from django_cryptography.fields import Expired, encrypt
+from django_crypto.fields import Expired, encrypt
 
 from .models import (
     EncryptedCharModel,
@@ -196,7 +196,7 @@ class TestMigrations(TransactionTestCase):
     def test_subclass_deconstruct(self):
         field = encrypt(models.IntegerField())
         name, path, args, kwargs = field.deconstruct()
-        self.assertEqual("django_cryptography.fields.encrypt", path)
+        self.assertEqual("django_crypto.fields.encrypt", path)
 
         field = EncryptedFieldSubclass()
         name, path, args, kwargs = field.deconstruct()

@@ -18,16 +18,19 @@ from django.core.signing import (
 from django.utils.encoding import force_bytes
 from django.utils.regex_helper import _lazy_re_compile
 
-from ..typing import Algorithm, Serializer
+from ..type_hints import Algorithm, Serializer
 from ..utils.crypto import HASHES, InvalidAlgorithm, constant_time_compare, salted_hmac
 
 try:
-    from django.core.signing import b62_decode, b62_encode  # type: ignore
-except ImportError:
-    from django.utils import baseconv
+    # Django 5
+    from django.core.signing import Signer as django_signer  # type: ignore
+    
+    b62_decode = django_signer.unsign
+    b62_encode = django_signer.sign
 
-    # Required for Django 3.2 support
-    b62_decode, b62_encode = baseconv.base62.decode, baseconv.base62.encode
+except ImportError:
+    # Django 4.0
+    from django.core.signing import b62_decode, b62_encode  # type: ignore
 
 __all__ = [
     "BadSignature",

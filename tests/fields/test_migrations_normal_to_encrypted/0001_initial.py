@@ -1,6 +1,6 @@
 from django.db import migrations, models
 
-import django_cryptography.fields
+import django_crypto.fields
 
 
 class Migration(migrations.Migration):
@@ -101,7 +101,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "field",
-                    django_cryptography.fields.PickledField(default=b""),
+                    django_crypto.fields.PickledField(default=b""),
                 ),
             ],
         ),
@@ -119,7 +119,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "field",
-                    django_cryptography.fields.PickledField(blank=True, null=True),
+                    django_crypto.fields.PickledField(blank=True, null=True),
                 ),
             ],
         ),
@@ -152,7 +152,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("field", django_cryptography.fields.PickledField()),
+                ("field", django_crypto.fields.PickledField()),
             ],
         ),
     ]

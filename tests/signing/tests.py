@@ -4,8 +4,8 @@ import time
 from django.test import SimpleTestCase
 from django.test.utils import freeze_time
 
-from django_cryptography.core import signing
-from django_cryptography.utils.crypto import InvalidAlgorithm
+from django_crypto.core import signing
+from django_crypto.utils.crypto import InvalidAlgorithm
 
 
 class TestSigner(SimpleTestCase):
