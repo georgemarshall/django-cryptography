@@ -69,3 +69,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Test environments
+test_env/
+test_django_project/
