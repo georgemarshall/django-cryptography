@@ -8,8 +8,8 @@ from django.test import SimpleTestCase
 from django.test.utils import freeze_time, override_settings
 from django.utils.crypto import salted_hmac as django_salted_hmac
 
-from django_cryptography.core import signing
-from django_cryptography.utils.crypto import (
+from django_crypto.core import signing
+from django_crypto.utils.crypto import (
     Fernet,
     FernetBytes,
     InvalidAlgorithm,

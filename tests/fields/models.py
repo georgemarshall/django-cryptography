@@ -1,6 +1,6 @@
 from django.db import models
 
-from django_cryptography.fields import PickledField, encrypt
+from django_crypto.fields import PickledField, encrypt
 
 
 class PickledModel(models.Model):

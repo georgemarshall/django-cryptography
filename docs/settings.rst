@@ -24,7 +24,7 @@ When value is :obj:`None` a key will be derived from
 :const:`CRYPTOGRAPHY_SALT`
 --------------------------
 
-Default: ``'django-cryptography'``
+Default: ``'django-crypto'``
 
 Drop-in Replacements
 --------------------
@@ -36,6 +36,6 @@ The default can be replaced with a a Cryptography_ based version.
 
 .. code-block:: python
 
-   SIGNING_BACKEND = 'django_cryptography.core.signing.TimestampSigner'
+   SIGNING_BACKEND = 'django_crypto.core.signing.TimestampSigner'
 
 .. _Cryptography: https://cryptography.io/

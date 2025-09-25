@@ -10,6 +10,6 @@ INSTALLED_APPS = [
     "tests.fields",
 ]
 
-SIGNING_BACKEND = "django_cryptography.core.signing.TimestampSigner"
+SIGNING_BACKEND = "django_crypto.core.signing.TimestampSigner"
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

@@ -62,7 +62,7 @@ author = "George Marshall"
 version = "0.1"
 # The full version, including alpha/beta/rc tags.
 try:
-    from django_cryptography import VERSION, get_version
+    from django_crypto import VERSION, get_version
 except ImportError:
     release = version
 else:

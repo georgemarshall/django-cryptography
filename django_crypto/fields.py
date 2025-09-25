@@ -22,9 +22,9 @@ from django.db.models.lookups import Lookup, Transform
 from django.utils.encoding import force_bytes
 from django.utils.translation import gettext_lazy as _
 
-from django_cryptography.core.signing import SignatureExpired
-from django_cryptography.type_hints import DatabaseWrapper
-from django_cryptography.utils.crypto import FernetBytes
+from django_crypto.core.signing import SignatureExpired
+from django_crypto.type_hints import DatabaseWrapper
+from django_crypto.utils.crypto import FernetBytes
 
 F = TypeVar("F", bound=models.Field)
 FIELD_CACHE: Dict[type, type] = {}

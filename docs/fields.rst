@@ -1,7 +1,7 @@
 Fields
 ======
 
-.. currentmodule:: django_cryptography.fields
+.. currentmodule:: django_crypto.fields
 
 .. autofunction:: encrypt
 
